@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:padding="20dp">
+
+    <!-- Логотип (вверху по центру) -->
+    <ImageView
+        android:id="@+id/logoImage"
+        android:layout_width="286dp"
+        android:layout_height="141dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:contentDescription="Логотип"
+        android:src="@drawable/logo" />
+
+    <!-- Заголовок -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Авторизация для продавца"
+        android:textColor="#001A34"
+        android:textSize="32sp"
+        android:fontFamily="@font/ramona_bold"
+        android:layout_below="@id/logoImage"
+        android:layout_marginTop="40dp"
+        android:textStyle="bold"/>
+
+    <!-- Поле для ввода логина -->
+    <EditText
+        android:id="@+id/loginField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Логин"
+        android:textSize="18sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="16dp"
+        android:layout_below="@id/title"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF"
+        android:importantForAccessibility="yes"
+        android:contentDescription="Поле для ввода логина"
+        android:inputType="text"/>
+
+    <!-- Поле для ввода пароля -->
+    <EditText
+        android:id="@+id/passwordField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Пароль"
+        android:textSize="18sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="16dp"
+        android:layout_below="@id/loginField"
+        android:layout_marginTop="16dp"
+        android:inputType="textPassword"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF"
+        android:importantForAccessibility="yes"
+        android:contentDescription="Поле для ввода пароля"/>
+
+    <!-- Кнопка входа -->
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Войти"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#005BFF"
+        android:textSize="18sp"
+        android:fontFamily="@font/ramona_light"
+        android:layout_below="@id/passwordField"
+        android:layout_marginTop="32dp"
+        android:importantForAccessibility="yes"
+        android:contentDescription="Кнопка входа"/>
+
+    <!-- Ссылки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/loginButton"
+        android:layout_marginTop="30dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!-- Ссылка на авторизацию как покупатель -->
+        <TextView
+            android:id="@+id/buyerAuthLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="12dp"
+            android:contentDescription="Ссылка на авторизацию как покупателя"
+            android:fontFamily="@font/ramona_light"
+            android:importantForAccessibility="yes"
+            android:text="Войти как покупатель"
+            android:textColor="#00A2FF"
+            android:textSize="16sp" />
+
+        <!-- Ссылка на восстановление пароля -->
+        <TextView
+            android:id="@+id/forgotPasswordLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="Ссылка на восстановление пароля"
+            android:fontFamily="@font/ramona_light"
+            android:importantForAccessibility="yes"
+            android:text="Забыли пароль?"
+            android:textColor="#F1117E"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+</RelativeLayout>

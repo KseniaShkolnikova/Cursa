@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1058627487379",
+    "project_id": "ozon-2385a",
+    "storage_bucket": "ozon-2385a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058627487379:android:930ac75a8faf8a035e6f66",
+        "android_client_info": {
+          "package_name": "com.example.ozon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEXor78GOOh7a9ZkIztJaFSbwquFV5XoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

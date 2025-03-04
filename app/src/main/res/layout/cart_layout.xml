@@ -1,0 +1,59 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#FAFAFA">
+
+    <!-- Список товаров в корзине с тенью -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/cartRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical"
+        android:elevation="4dp"
+        android:background="#FFFFFF"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Общая сумма -->
+    <TextView
+        android:id="@+id/totalAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Общая сумма: 0 ₽"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#001A34"
+    android:layout_marginTop="20dp"
+    android:layout_marginBottom="20dp"
+    android:fontFamily="@font/ramona_bold"/>
+
+    <!-- Кнопки -->
+    <Button
+        android:id="@+id/clearCartButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Очистить корзину"
+        android:textSize="18dp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#005BFF"
+    android:fontFamily="@font/ramona_bold"
+    android:layout_marginBottom="12dp"
+    android:elevation="6dp"
+    android:importantForAccessibility="yes"
+    android:contentDescription="Очистить корзину"/>
+
+    <Button
+        android:id="@+id/checkoutButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Перейти к оплате"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#00A2FF"
+    android:fontFamily="@font/ramona_bold"
+    android:elevation="6dp"
+    android:importantForAccessibility="yes"
+    android:contentDescription="Перейти к оплате" />
+</LinearLayout>

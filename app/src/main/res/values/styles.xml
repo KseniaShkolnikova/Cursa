@@ -1,0 +1,48 @@
+<resources>
+    <!-- Стиль для заголовков -->
+    <style name="HeaderTextStyle">
+        <item name="android:fontFamily">@font/ramona_bold</item>
+        <item name="android:textColor">#001A34</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:layout_marginBottom">24dp</item>
+    </style>
+
+    <!-- Стиль для обычного текста -->
+    <style name="BodyTextStyle">
+        <item name="android:fontFamily">@font/ramona_light</item>
+        <item name="android:textColor">#001A34</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <!-- Стиль для кнопок -->
+    <style name="ButtonStyle">
+        <item name="android:backgroundTint">#005BFF</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:fontFamily">@font/ramona_bold</item>
+    </style>
+
+    <!-- Стиль для ссылок -->
+    <style name="LinkTextStyle">
+        <item name="android:textColor">#00A2FF</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/ramona_light</item>
+    </style>
+
+    <!-- Стиль для ссылки восстановления пароля -->
+    <style name="ForgotPasswordStyle">
+        <item name="android:textColor">#F1117E</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/ramona_light</item>
+    </style>
+
+        <style name="ButtonStyle2">
+            <item name="android:background">@drawable/button_background</item> <!-- Custom background -->
+            <item name="android:textColor">@color/primary_color</item>
+            <item name="android:textSize">16sp</item>
+            <item name="android:layout_marginBottom">16dp</item>
+            <item name="android:fontFamily">@font/ramona_bold</item>
+        </style>
+
+
+</resources>

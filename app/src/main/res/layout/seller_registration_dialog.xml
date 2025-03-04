@@ -1,0 +1,126 @@
+<!-- res/layout/dialog_register_seller.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+
+    <!-- Наименование магазина -->
+    <EditText
+        android:id="@+id/etStoreName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Наименование магазина"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- Фамилия -->
+    <EditText
+        android:id="@+id/etLastName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Фамилия"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- Имя -->
+    <EditText
+        android:id="@+id/etFirstName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Имя"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- Отчество -->
+    <EditText
+        android:id="@+id/etMiddleName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Отчество"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- ОГРНИП -->
+    <EditText
+        android:id="@+id/etOGRNIP"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="ОГРНИП"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- ИНН -->
+    <EditText
+        android:id="@+id/etINN"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="ИНН"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- Кнопки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Кнопка "Отмена" -->
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Отмена"
+            android:textColor="#005BFF"
+            android:backgroundTint="#FFFFFF"
+            android:textSize="16sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Кнопка "Создать аккаунт" -->
+        <Button
+            android:id="@+id/btnCreateAccount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Создать аккаунт"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#005BFF"
+            android:textSize="16sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+</LinearLayout>

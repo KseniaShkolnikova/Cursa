@@ -1,0 +1,86 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#FFFFFF"
+    android:gravity="center">
+
+    <!-- Изображение товара с тенью -->
+    <ImageView
+        android:id="@+id/productImage"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_marginBottom="20dp"
+        android:scaleType="centerCrop"
+        android:background="#F1F1F1"
+        android:elevation="4dp"
+        android:layout_gravity="center"
+        android:contentDescription="Изображение товара"/>
+
+    <!-- Название товара -->
+    <TextView
+        android:id="@+id/productName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Название товара"
+        android:textColor="#001A34"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/ramona_bold"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Цена товара с дополнительным выделением -->
+    <TextView
+        android:id="@+id/productPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1000 ₽"
+        android:textColor="#FF5722"
+        android:textSize="24sp"
+        android:fontFamily="@font/ramona_light"
+        android:layout_marginBottom="16dp"
+        android:textStyle="bold"/>
+
+    <!-- Тип товара -->
+    <TextView
+        android:id="@+id/productType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Тип товара: Электроника"
+        android:textColor="#555555"
+        android:textSize="18sp"
+        android:fontFamily="@font/ramona_light"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Описание товара с улучшенным отступом -->
+    <TextView
+        android:id="@+id/productDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Описание товара"
+        android:textColor="#333333"
+        android:textSize="16sp"
+        android:fontFamily="@font/ramona_light"
+        android:lineSpacingExtra="8dp"
+        android:layout_marginBottom="24dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"/>
+
+    <!-- Кнопка "Добавить в корзину" -->
+    <Button
+        android:id="@+id/addToCartButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Добавить в корзину"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:backgroundTint="#005BFF"
+        android:fontFamily="@font/ramona_bold"
+        android:layout_marginBottom="24dp"
+        android:layout_gravity="center"
+        android:elevation="6dp"
+        android:importantForAccessibility="yes"
+        android:contentDescription="Кнопка добавить в корзину"/>
+
+</LinearLayout>

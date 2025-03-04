@@ -1,0 +1,112 @@
+<!-- res/layout/dialog_edit_account.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="20dp"
+    android:gravity="center"
+    android:scrollbars="none">
+
+    <!-- Заголовок -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Изменение аккаунта"
+        android:textColor="#001A34"
+        android:textSize="32sp"
+        android:fontFamily="@font/ramona_bold"
+        android:layout_marginBottom="40dp"
+        android:textStyle="bold"/>
+
+    <!-- Поле для ввода имени -->
+    <EditText
+        android:id="@+id/etEditName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Имя"
+        android:textSize="18sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF"
+        android:importantForAccessibility="yes"
+        android:contentDescription="Поле для ввода имени"
+        android:inputType="textPersonName" />
+
+    <!-- Поле для ввода логина (email) -->
+    <EditText
+        android:id="@+id/etEditEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Логин (email)"
+        android:textSize="18sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF"
+        android:importantForAccessibility="yes"
+        android:contentDescription="Поле для ввода логина"
+        android:inputType="textEmailAddress" />
+
+    <!-- Поле для ввода пароля -->
+    <EditText
+        android:id="@+id/etEditPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Пароль"
+        android:textSize="18sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="16dp"
+        android:layout_marginBottom="32dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF"
+        android:importantForAccessibility="yes"
+        android:contentDescription="Поле для ввода пароля"
+        android:inputType="textPassword" />
+
+    <!-- Кнопки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="center">
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Сохранить"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#005BFF"
+            android:textSize="18sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginStart="8dp"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Кнопка сохранения" />
+
+        <!-- Кнопка "Отмена" -->
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Отмена"
+            android:textColor="#005BFF"
+            android:backgroundTint="#FFFFFF"
+            android:textSize="18sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginEnd="8dp"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Кнопка отмены" />
+
+        <!-- Кнопка "Сохранить" -->
+    </LinearLayout>
+</LinearLayout>

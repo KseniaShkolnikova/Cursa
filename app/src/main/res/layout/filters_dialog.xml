@@ -1,0 +1,78 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Фильтр по цене -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Цена"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:layout_marginBottom="8dp"/>
+
+    <SeekBar
+        android:id="@+id/priceSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="1000"
+        android:progress="500"/>
+
+    <TextView
+        android:id="@+id/priceRangeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="500 ₽"
+        android:textSize="14sp"
+        android:textColor="#005BFF"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Фильтр по категориям -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Категория"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:layout_marginBottom="8dp"/>
+
+    <Spinner
+        android:id="@+id/categorySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/rounded_spinner_background"
+        android:popupBackground="#FFFFFF"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Фильтр по популярности -->
+    <CheckBox
+        android:id="@+id/popularityCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Популярные"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Кнопки -->
+    <Button
+        android:id="@+id/applyFiltersButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Применить"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#005BFF"/>
+
+    <Button
+        android:id="@+id/resetFiltersButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Сбросить"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="@color/highlight_color"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

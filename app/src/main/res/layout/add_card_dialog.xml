@@ -1,0 +1,88 @@
+<!-- res/layout/dialog_add_card.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+
+    <!-- Поле для ввода номера карты -->
+    <EditText
+        android:id="@+id/etCardNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Номер карты"
+        android:inputType="number"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- Поле для ввода CVV -->
+    <EditText
+        android:id="@+id/etCardCVV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="CVV"
+        android:inputType="number"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- Поле для ввода даты окончания действия -->
+    <EditText
+        android:id="@+id/etCardExpiry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="ММ/ГГ"
+        android:inputType="number"
+        android:textSize="16sp"
+        android:textColor="#001A34"
+        android:background="@drawable/rounded_edittext_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/ramona_light"
+        android:textColorHint="#005BFF" />
+
+    <!-- Кнопки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Кнопка "Добавить" -->
+        <Button
+            android:id="@+id/btnAdd"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Добавить"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#005BFF"
+            android:textSize="16sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginStart="8dp" />
+
+        <!-- Кнопка "Отмена" -->
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Отмена"
+            android:textColor="#005BFF"
+            android:backgroundTint="#FFFFFF"
+            android:textSize="16sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginEnd="8dp" />
+
+    </LinearLayout>
+</LinearLayout>
