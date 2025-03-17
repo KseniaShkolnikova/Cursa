@@ -1,12 +1,9 @@
 package com.example.ozon;
 
-import android.util.Log;
-
+import java.io.Serializable;
 import com.google.firebase.firestore.Exclude;
 
-import java.io.Serializable;
-
-public class Product {
+public class Product implements Serializable { // Реализуем интерфейс Serializable
     private String id;
     private String name;
     private int price;
@@ -14,15 +11,17 @@ public class Product {
     private String imageBase64;
     private String description;
     private String sellerId;
+    private int quantity; // Добавляем поле для количества
 
     public Product() {}
 
-    public Product(String name, int price, String productType, String imageBase64, String description) {
+    public Product(String name, int price, String productType, String imageBase64, String description, int quantity) {
         this.name = name;
         this.price = price;
         this.productType = productType;
         this.imageBase64 = imageBase64;
         this.description = description;
+        this.quantity = quantity;
     }
 
     @Exclude
@@ -80,5 +79,13 @@ public class Product {
 
     public void setSellerId(String sellerId) {
         this.sellerId = sellerId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 }

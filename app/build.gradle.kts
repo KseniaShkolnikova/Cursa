@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
+    implementation ("com.google.android.gms:play-services-tasks:18.0.1")
     implementation ("com.squareup.picasso:picasso:2.71828")
     implementation ("com.google.firebase:firebase-firestore:24.9.1")
     implementation ("com.firebaseui:firebase-ui-firestore:8.0.2")

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    tools:context=".SellerProfileActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Верхнее меню (Toolbar) -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="66dp"
+            android:background="#FFFFFF"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+            <View
+                android:layout_width="300dp"
+                android:layout_height="match_parent"/>
+
+            <ImageView
+                android:id="@+id/btnMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:padding="15dp"
+                android:src="@drawable/_3"
+                android:tint="#005BFF" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Информация о продавце -->
+        <TextView
+            android:id="@+id/tvSellerName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Имя Продавца"
+            android:textColor="#001A34"
+            android:textSize="20sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvSellerLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Логин: seller123"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/ramona_light"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvSellerShop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Магазин: MyShop"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/ramona_light"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvSellerOGRNIP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ОГРНИП: 1234567890123"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/ramona_light"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvSellerINN"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ИНН: 1234567890"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/ramona_light"
+            android:layout_marginBottom="16dp"/>
+    </LinearLayout>
+</ScrollView>

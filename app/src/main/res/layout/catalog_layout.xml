@@ -51,6 +51,15 @@
         android:textColor="#FFFFFF"
         android:backgroundTint="#005BFF"
         android:layout_marginBottom="16dp"/>
+    <TextView
+        android:id="@+id/emptyView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ничего не найдено"
+        android:textSize="18sp"
+        android:visibility="gone"
+    android:layout_gravity="center"
+    android:layout_marginTop="16dp"/>
 
     <!-- Список товаров -->
     <androidx.recyclerview.widget.RecyclerView

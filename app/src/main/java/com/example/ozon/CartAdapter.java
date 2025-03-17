@@ -28,38 +28,36 @@ public class CartAdapter extends FirestoreRecyclerAdapter<Cart, CartAdapter.Cart
     @Override
     protected void onBindViewHolder(@NonNull CartViewHolder holder, int position, @NonNull Cart cart) {
         holder.productName.setText(cart.getName());
+        holder.productPrice.setText(String.valueOf(cart.getPrice()) + " ₽");
+        holder.productQuantity.setText(""+cart.getQuantity());
 
-        // Обработка цены с проверкой
-        int price = cart.getPrice();
-        holder.productPrice.setText(String.valueOf(price));
-
-        // Количество товара
-        int quantity = cart.getQuantity();
-        holder.productQuantity.setText(String.valueOf(quantity));
-
-        // Установка изображения
         if (cart.getImageBase64() != null && !cart.getImageBase64().isEmpty()) {
             Bitmap bitmap = base64ToBitmap(cart.getImageBase64());
             if (bitmap != null) {
                 holder.productImage.setImageBitmap(bitmap);
+            } else {
+                holder.productImage.setImageResource(R.drawable.no_photo);
             }
+        } else {
+            holder.productImage.setImageResource(R.drawable.no_photo);
         }
 
-        // Увеличение количества
         holder.increaseQuantity.setOnClickListener(v -> {
             int newQuantity = cart.getQuantity() + 1;
             updateQuantity(cart.getDocumentId(), newQuantity, holder.itemView.getContext());
         });
 
-        // Уменьшение количества
         holder.decreaseQuantity.setOnClickListener(v -> {
             int newQuantity = cart.getQuantity() - 1;
             if (newQuantity > 0) {
                 updateQuantity(cart.getDocumentId(), newQuantity, holder.itemView.getContext());
             } else {
-                // Удаление товара, если количество = 0
                 deleteCartItem(cart.getDocumentId(), holder.itemView.getContext());
             }
+        });
+
+        holder.deleteItemButton.setOnClickListener(v -> {
+            deleteCartItem(cart.getDocumentId(), holder.itemView.getContext());
         });
     }
 
@@ -67,7 +65,9 @@ public class CartAdapter extends FirestoreRecyclerAdapter<Cart, CartAdapter.Cart
         FirebaseFirestore.getInstance().collection("cart")
                 .document(documentId)
                 .update("quantity", newQuantity)
-                .addOnSuccessListener(aVoid -> {})
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(context, "Количество обновлено", Toast.LENGTH_SHORT).show();
+                })
                 .addOnFailureListener(e -> {
                     Toast.makeText(context, "Ошибка при обновлении количества", Toast.LENGTH_SHORT).show();
                 });
@@ -104,7 +104,7 @@ public class CartAdapter extends FirestoreRecyclerAdapter<Cart, CartAdapter.Cart
 
     static class CartViewHolder extends RecyclerView.ViewHolder {
         TextView productName, productPrice, productQuantity;
-        ImageView productImage, increaseQuantity, decreaseQuantity;
+        ImageView productImage, increaseQuantity, decreaseQuantity, deleteItemButton;
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -114,6 +114,7 @@ public class CartAdapter extends FirestoreRecyclerAdapter<Cart, CartAdapter.Cart
             productImage = itemView.findViewById(R.id.productImage);
             increaseQuantity = itemView.findViewById(R.id.increaseQuantity);
             decreaseQuantity = itemView.findViewById(R.id.decreaseQuantity);
+            deleteItemButton = itemView.findViewById(R.id.deleteItemButton);
         }
     }
 }

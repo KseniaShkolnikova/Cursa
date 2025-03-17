@@ -1,0 +1,85 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Список товаров -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Выбор банковской карты -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Выберите карту для оплаты"
+        android:textColor="#001A34"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"/>
+
+    <Spinner
+        android:id="@+id/bankCardSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Отображение выбранной карты -->
+    <TextView
+        android:id="@+id/selectedCardInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Выбранная карта: -"
+        android:textColor="#001A34"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Кнопка для подключения защиты -->
+    <Button
+        android:id="@+id/protectionButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Подключить защиту имущества"
+        android:backgroundTint="#005BFF"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Общая стоимость -->
+    <TextView
+        android:id="@+id/totalAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Итого: 0 ₽"
+        android:textColor="#001A34"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/ramona_bold"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Чекбокс согласия -->
+    <CheckBox
+        android:id="@+id/agreementCheckBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Согласен с условиями и Правилами пользования торговой площадки и правилами Возврата"
+        android:textColor="#001A34"
+        android:textSize="14sp"
+        android:fontFamily="@font/ramona_light"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Кнопка оплаты -->
+    <Button
+        android:id="@+id/payButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Оплатить"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#005BFF"
+        android:textSize="18sp"
+        android:fontFamily="@font/ramona_bold"
+        android:enabled="false"
+        android:alpha="0.5"/>
+</LinearLayout>

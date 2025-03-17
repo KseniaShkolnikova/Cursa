@@ -12,15 +12,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
-
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,38 +26,31 @@ public class ProfileActivity extends Fragment {
     private TextView tvUserName, tvUserLogin, tvUserPassword;
     private FirebaseFirestore db;
     private String userDocumentId;
+    private String userRole;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.profile_activity, container, false);
 
-        // Инициализация Firestore
         db = FirebaseFirestore.getInstance();
 
-        // Получаем userDocumentId из Bundle
         Bundle bundle = getArguments();
         if (bundle != null) {
             userDocumentId = bundle.getString("USER_DOCUMENT_ID");
+            userRole = bundle.getString("USER_ROLE");
         }
 
-        // Инициализация элементов
         tvUserName = view.findViewById(R.id.tvUserName);
         tvUserLogin = view.findViewById(R.id.tvUserLogin);
         tvUserPassword = view.findViewById(R.id.tvUserPassword);
         ImageView btnMenu = view.findViewById(R.id.btnMenu);
         Button btnAddCard = view.findViewById(R.id.btnAddCard);
 
-        // Загрузка данных пользователя
         loadUserData();
-
-        // Загрузка карт пользователя
         loadUserCards();
 
-        // Обработка нажатия на иконку меню
         btnMenu.setOnClickListener(v -> showPopupMenu(v));
-
-        // Обработка нажатия на кнопку добавления карты
         btnAddCard.setOnClickListener(v -> showAddCardDialog());
 
         return view;
@@ -78,12 +68,10 @@ public class ProfileActivity extends Fragment {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
-                            // Получаем данные пользователя
                             String name = document.getString("name");
                             String email = document.getString("email");
                             String password = document.getString("password");
 
-                            // Отображаем данные в интерфейсе
                             tvUserName.setText(name);
                             tvUserLogin.setText("Логин: " + email);
                             tvUserPassword.setText("Пароль: " + password);
@@ -100,7 +88,6 @@ public class ProfileActivity extends Fragment {
         PopupMenu popupMenu = new PopupMenu(requireContext(), view);
         popupMenu.getMenuInflater().inflate(R.menu.menu_account, popupMenu.getMenu());
 
-        // Обработка выбора пункта меню
         popupMenu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_logout) {
                 Toast.makeText(requireContext(), "Выход из аккаунта", Toast.LENGTH_SHORT).show();
@@ -111,10 +98,10 @@ public class ProfileActivity extends Fragment {
                 }
                 return true;
             } else if (item.getItemId() == R.id.action_register_seller) {
-                checkIfSellerExistsBeforeRegistration(); // Проверяем, не зарегистрирован ли уже продавец
+                checkIfSellerExistsBeforeRegistration();
                 return true;
             } else if (item.getItemId() == R.id.action_edit_account) {
-                showEditAccountDialog(); // Показываем диалоговое окно
+                showEditAccountDialog();
                 return true;
             } else if (item.getItemId() == R.id.action_delete_account) {
                 deleteAccount();
@@ -134,7 +121,7 @@ public class ProfileActivity extends Fragment {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (task.getResult().isEmpty()) {
-                            showRegisterSellerDialog(); // Показываем диалоговое окно регистрации
+                            showRegisterSellerDialog();
                         } else {
                             Toast.makeText(requireContext(), "Вы уже зарегистрированы как продавец", Toast.LENGTH_SHORT).show();
                         }
@@ -188,7 +175,6 @@ public class ProfileActivity extends Fragment {
             return;
         }
 
-        // Получаем текущие данные пользователя (email и password)
         db.collection("users").document(userDocumentId)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -198,20 +184,18 @@ public class ProfileActivity extends Fragment {
                             String email = document.getString("email");
                             String password = document.getString("password");
 
-                            // Создаем Map с данными продавца
                             Map<String, Object> sellerData = new HashMap<>();
                             sellerData.put("email", email);
                             sellerData.put("password", password);
-                            sellerData.put("role", "seller"); // Устанавливаем роль "seller"
+                            sellerData.put("role", "seller");
                             sellerData.put("storeName", storeName);
                             sellerData.put("lastName", lastName);
                             sellerData.put("firstName", firstName);
                             sellerData.put("middleName", middleName);
                             sellerData.put("ogrnip", ogrnip);
                             sellerData.put("inn", inn);
-                            sellerData.put("userId", userDocumentId); // Добавляем ID текущего пользователя
+                            sellerData.put("userId", userDocumentId);
 
-                            // Создаем новый документ в коллекции "users"
                             db.collection("users")
                                     .add(sellerData)
                                     .addOnSuccessListener(documentReference -> {
@@ -351,13 +335,13 @@ public class ProfileActivity extends Fragment {
         cardData.put("cardNumber", cardNumber);
         cardData.put("cvv", cardCVV);
         cardData.put("expiryDate", cardExpiry);
-        cardData.put("userId", userDocumentId); // Связываем карту с пользователем
+        cardData.put("userId", userDocumentId);
 
         db.collection("cards")
                 .add(cardData)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(requireContext(), "Карта успешно добавлена", Toast.LENGTH_SHORT).show();
-                    loadUserCards(); // Обновляем список карт
+                    loadUserCards();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Ошибка при добавлении карты: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -376,21 +360,18 @@ public class ProfileActivity extends Fragment {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         LinearLayout cardsContainer = getView().findViewById(R.id.cardsContainer);
-                        cardsContainer.removeAllViews(); // Очищаем контейнер
+                        cardsContainer.removeAllViews();
 
                         for (DocumentSnapshot document : task.getResult()) {
                             String cardNumber = document.getString("cardNumber");
                             String cardId = document.getId();
 
-                            // Создаем элемент карты
                             View cardView = LayoutInflater.from(requireContext()).inflate(R.layout.item_card, null);
                             TextView tvCardNumber = cardView.findViewById(R.id.tvCardNumber);
                             tvCardNumber.setText("Карта **** " + cardNumber.substring(cardNumber.length() - 4));
 
-                            // Обработчик нажатия на карточку
                             cardView.setOnClickListener(v -> showCardOptionsMenu(v, cardId));
 
-                            // Добавляем карту в контейнер
                             cardsContainer.addView(cardView);
                         }
                     } else {
@@ -403,10 +384,9 @@ public class ProfileActivity extends Fragment {
         PopupMenu popupMenu = new PopupMenu(requireContext(), view);
         popupMenu.getMenuInflater().inflate(R.menu.card_delete_menu, popupMenu.getMenu());
 
-        // Обработка выбора пункта меню
         popupMenu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_delete_card) {
-                deleteCard(cardId); // Удаление карты
+                deleteCard(cardId);
                 return true;
             }
             return false;
@@ -420,7 +400,7 @@ public class ProfileActivity extends Fragment {
                 .delete()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(requireContext(), "Карта успешно удалена", Toast.LENGTH_SHORT).show();
-                    loadUserCards(); // Обновляем список карт
+                    loadUserCards();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Ошибка при удалении карты: " + e.getMessage(), Toast.LENGTH_SHORT).show();

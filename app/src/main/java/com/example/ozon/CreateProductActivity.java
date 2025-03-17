@@ -34,7 +34,7 @@ import java.util.Map;
 public class CreateProductActivity extends Fragment {
 
     private static final int PICK_IMAGE_REQUEST = 1;
-    private EditText productNameInput, productPriceInput, productDescriptionInput;
+    private EditText productNameInput, productPriceInput, productDescriptionInput, productQuantityInput;
     private ImageView productImagePreview;
     private Uri imageUri;
     private FirebaseFirestore db;
@@ -55,9 +55,10 @@ public class CreateProductActivity extends Fragment {
 
         productNameInput = view.findViewById(R.id.productNameInput);
         productPriceInput = view.findViewById(R.id.productPriceInput);
+        productQuantityInput = view.findViewById(R.id.productQuantityInput); // Инициализация поля для количества
         productImagePreview = view.findViewById(R.id.productImagePreview);
         productDescriptionInput = view.findViewById(R.id.productDescriptionInput);
-        productTypeInput = view.findViewById(R.id.productTypeSpinner); // Инициализация Spinner
+        productTypeInput = view.findViewById(R.id.productTypeSpinner);
 
         Button selectImageButton = view.findViewById(R.id.selectImageButton);
         Button saveProductButton = view.findViewById(R.id.saveProductButton);
@@ -74,19 +75,20 @@ public class CreateProductActivity extends Fragment {
 
         return view;
     }
+
     private void loadProductTypes() {
         db.collection("productType")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        productTypes.clear(); // Очистка списка перед загрузкой новых данных
+                        productTypes.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            String typeName = document.getString("name"); // Предположим, что поле с названием типа называется "name"
+                            String typeName = document.getString("name");
                             if (typeName != null) {
                                 productTypes.add(typeName);
                             }
                         }
-                        spinnerAdapter.notifyDataSetChanged(); // Обновление адаптера
+                        spinnerAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(getContext(), "Ошибка загрузки типов товаров", Toast.LENGTH_SHORT).show();
                     }
@@ -110,12 +112,13 @@ public class CreateProductActivity extends Fragment {
     private void saveProduct() {
         String name = productNameInput.getText().toString();
         String price = productPriceInput.getText().toString();
-        String type = productTypeInput.getSelectedItem().toString(); // Получаем выбранный тип товара
+        String quantity = productQuantityInput.getText().toString(); // Получаем количество товара
+        String type = productTypeInput.getSelectedItem().toString();
         String description = productDescriptionInput.getText().toString();
         String imageBase64;
 
         // Проверка на заполнение обязательных полей
-        if (name.isEmpty() || price.isEmpty() || type.isEmpty() || description.isEmpty()) {
+        if (name.isEmpty() || price.isEmpty() || quantity.isEmpty() || type.isEmpty() || description.isEmpty()) {
             Toast.makeText(getContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -135,16 +138,14 @@ public class CreateProductActivity extends Fragment {
         }
 
         // Сохраняем продукт в Firestore
-        int price2 = Integer.parseInt(price);
-        saveProductToFirestore(name, price2, type, imageBase64, description);
+        int priceInt = Integer.parseInt(price);
+        int quantityInt = Integer.parseInt(quantity);
+        saveProductToFirestore(name, priceInt, type, imageBase64, description, quantityInt);
     }
 
     private String drawableToBase64(int drawableResId) {
         try {
-            // Получаем Bitmap из ресурса drawable
             Bitmap bitmap = BitmapFactory.decodeResource(getResources(), drawableResId);
-
-            // Преобразуем Bitmap в Base64
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
             byte[] byteArray = byteArrayOutputStream.toByteArray();
@@ -168,7 +169,7 @@ public class CreateProductActivity extends Fragment {
         }
     }
 
-    private void saveProductToFirestore(String name, int price, String type, String imageBase64, String description) {
+    private void saveProductToFirestore(String name, int price, String type, String imageBase64, String description, int quantity) {
         Map<String, Object> product = new HashMap<>();
         product.put("name", name);
         product.put("price", price);
@@ -176,14 +177,13 @@ public class CreateProductActivity extends Fragment {
         product.put("imageBase64", imageBase64);
         product.put("description", description);
         product.put("sellerId", userDocumentId);
+        product.put("quantity", quantity); // Добавляем количество товара
 
         db.collection("products").add(product)
                 .addOnSuccessListener(documentReference -> {
                     String productId = documentReference.getId();
                     Toast.makeText(getContext(), "Продукт добавлен с ID: " + productId, Toast.LENGTH_SHORT).show();
-                    if (getActivity() != null) {
-                        getActivity().finish();
-                    }
+
                 })
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Ошибка при добавлении продукта", Toast.LENGTH_SHORT).show());
     }

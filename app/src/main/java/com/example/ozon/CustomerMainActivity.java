@@ -1,10 +1,8 @@
 package com.example.ozon;
 
 import android.os.Bundle;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class CustomerMainActivity extends AppCompatActivity {
@@ -16,7 +14,7 @@ public class CustomerMainActivity extends AppCompatActivity {
 
         // Получаем userDocumentId и userRole из Intent
         String userDocumentId = getIntent().getStringExtra("USER_DOCUMENT_ID");
-        String userRole = getIntent().getStringExtra("USER_ROLE"); // Получаем роль пользователя
+        String userRole = getIntent().getStringExtra("USER_ROLE");
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
@@ -26,19 +24,19 @@ public class CustomerMainActivity extends AppCompatActivity {
                 selectedFragment = new CatalogActivity();
                 Bundle bundle = new Bundle();
                 bundle.putString("USER_DOCUMENT_ID", userDocumentId);
-                bundle.putString("USER_ROLE", userRole); // Передаем роль пользователя
+                bundle.putString("USER_ROLE", userRole);
                 selectedFragment.setArguments(bundle);
             } else if (item.getItemId() == R.id.nav_cart) {
                 selectedFragment = new CartActivity();
                 Bundle bundle = new Bundle();
                 bundle.putString("USER_DOCUMENT_ID", userDocumentId);
-                bundle.putString("USER_ROLE", userRole); // Передаем роль пользователя
+                bundle.putString("USER_ROLE", userRole);
                 selectedFragment.setArguments(bundle);
             } else if (item.getItemId() == R.id.nav_profile) {
                 selectedFragment = new ProfileActivity();
                 Bundle bundle = new Bundle();
                 bundle.putString("USER_DOCUMENT_ID", userDocumentId);
-                bundle.putString("USER_ROLE", userRole); // Передаем роль пользователя
+                bundle.putString("USER_ROLE", userRole);
                 selectedFragment.setArguments(bundle);
             }
 

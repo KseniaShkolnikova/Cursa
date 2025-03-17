@@ -35,7 +35,7 @@ public class SellerMainActivity extends AppCompatActivity {
                 bundle.putString("USER_ROLE", userRole); // Передаем роль пользователя
                 selectedFragment.setArguments(bundle);
             } else if (item.getItemId() == R.id.nav_profile) {
-                selectedFragment = new ProfileActivity();
+                selectedFragment = new SellerProfileActivity();
                 Bundle bundle = new Bundle();
                 bundle.putString("USER_DOCUMENT_ID", userDocumentId);
                 bundle.putString("USER_ROLE", userRole); // Передаем роль пользователя

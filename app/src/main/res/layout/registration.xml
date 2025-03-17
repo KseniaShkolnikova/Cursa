@@ -28,12 +28,12 @@
         android:layout_marginBottom="40dp"
         android:textStyle="bold"/>
 
-    <!-- Поле для ввода логина -->
+
     <EditText
-        android:id="@+id/loginField"
+        android:id="@+id/nameField"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Логин"
+        android:hint="Имя"
         android:textSize="18sp"
         android:textColor="#001A34"
         android:background="@drawable/rounded_edittext_background"
@@ -43,11 +43,12 @@
         android:textColorHint="#005BFF"
         android:inputType="text"/>
 
+    <!-- Поле для ввода логина -->
     <EditText
-        android:id="@+id/nameField"
+        android:id="@+id/loginField"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Имя"
+        android:hint="Логин"
         android:textSize="18sp"
         android:textColor="#001A34"
         android:background="@drawable/rounded_edittext_background"

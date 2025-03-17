@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/editName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Название товара"/>
+
+    <EditText
+        android:id="@+id/editPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:hint="Цена"/>
+
+    <EditText
+        android:id="@+id/editDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Описание"/>
+
+    <Spinner
+        android:id="@+id/editTypeSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/uploadImageButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Загрузить изображение"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/cancelButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Отмена"/>
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Сохранить"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/etEditLastName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Фамилия" />
+
+    <EditText
+        android:id="@+id/etEditFirstName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Имя" />
+
+    <EditText
+        android:id="@+id/etEditMiddleName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Отчество" />
+
+    <EditText
+        android:id="@+id/etEditEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Логин (email)"
+        android:inputType="textEmailAddress" />
+
+
+    <EditText
+        android:id="@+id/etEditStoreName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Название магазина" />
+
+    <EditText
+        android:id="@+id/etEditOGRNIP"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="ОГРНИП"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/etEditINN"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="ИНН"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Сохранить"
+        android:backgroundTint="#00A2FF"
+        android:textColor="#FFFFFF" />
+
+    <Button
+        android:id="@+id/btnCancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Отмена"
+        android:backgroundTint="#FF0000"
+        android:textColor="#FFFFFF" />
+</LinearLayout>

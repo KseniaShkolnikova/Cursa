@@ -42,17 +42,6 @@
         android:layout_marginBottom="16dp"
         android:textStyle="bold"/>
 
-    <!-- Название магазина -->
-    <TextView
-        android:id="@+id/storeNameTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Магазин: Неизвестно"
-        android:textColor="#555555"
-        android:textSize="18sp"
-        android:fontFamily="@font/ramona_light"
-        android:layout_marginBottom="16dp"/>
-
     <!-- Тип товара -->
     <TextView
         android:id="@+id/productType"
@@ -74,16 +63,45 @@
         android:textSize="16sp"
         android:fontFamily="@font/ramona_light"
         android:lineSpacingExtra="8dp"
+        android:layout_marginBottom="2dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"/>
+
+    <!-- Количество товара -->
+
+    <!-- Выручка от товара -->
+    <TextView
+        android:id="@+id/productQuantity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:fontFamily="@font/ramona_light"
+        android:lineSpacingExtra="8dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="Количество: "
+        android:textColor="#333333"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/productRevenue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Выручка"
+        android:textColor="#333333"
+        android:textSize="16sp"
+        android:fontFamily="@font/ramona_light"
+        android:lineSpacingExtra="8dp"
         android:layout_marginBottom="24dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"/>
 
-    <!-- Кнопка "Добавить в корзину" -->
+    <!-- Кнопка "Изменить" -->
     <Button
-        android:id="@+id/addToCartButton"
+        android:id="@+id/editProductButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="Добавить в корзину"
+        android:text="Изменить"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:backgroundTint="#005BFF"
@@ -92,6 +110,6 @@
         android:layout_gravity="center"
         android:elevation="6dp"
         android:importantForAccessibility="yes"
-        android:contentDescription="Кнопка добавить в корзину"/>
+        android:contentDescription="Кнопка изменить товар"/>
 
 </LinearLayout>
