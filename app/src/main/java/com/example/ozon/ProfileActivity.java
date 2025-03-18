@@ -153,7 +153,13 @@ public class ProfileActivity extends Fragment {
             String storeName = etStoreName.getText().toString();
             String lastName = etLastName.getText().toString();
             String firstName = etFirstName.getText().toString();
-            String middleName = etMiddleName.getText().toString();
+            String middleName;
+            if ( etMiddleName.getText().toString() !=""){
+                 middleName = etMiddleName.getText().toString();
+            }
+            else{
+                 middleName = null;
+            }
             String ogrnip = etOGRNIP.getText().toString();
             String inn = etINN.getText().toString();
 

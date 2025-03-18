@@ -1,7 +1,10 @@
 package com.example.ozon;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,12 +43,39 @@ public class MainActivity extends AppCompatActivity {
         });
 
         forgotPasswordLink = findViewById(R.id.forgotPasswordLink);
-        forgotPasswordLink.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, PasswordRecoveryActivity.class);
-            startActivity(intent);
-        });
+        forgotPasswordLink.setOnClickListener(v -> showForgotPasswordDialog());
 
         findViewById(R.id.loginButton).setOnClickListener(v -> loginUser());
+    }
+
+    private void showForgotPasswordDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this); // Используем this как контекст
+        View view = getLayoutInflater().inflate(R.layout.password_recovery, null);
+        builder.setView(view);
+
+        EditText emailField = view.findViewById(R.id.loginField);
+        Button sendEmailButton = view.findViewById(R.id.sendCodeButton);
+
+        AlertDialog dialog = builder.create();
+
+        sendEmailButton.setOnClickListener(v -> {
+            String email = emailField.getText().toString().trim();
+            if (email.isEmpty()) {
+                Toast.makeText(MainActivity.this, "Введите email", Toast.LENGTH_SHORT).show(); // Используем MainActivity.this
+            } else {
+                sendPasswordRecoveryEmail(email);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void sendPasswordRecoveryEmail(String email) {
+        String subject = "Восстановление пароля";
+        String body = "Для восстановления пароля перейдите по ссылке: ...";
+        new SendEmailTask(email, subject, body).execute();
+        Toast.makeText(MainActivity.this, "Сообщение отправлено на " + email, Toast.LENGTH_SHORT).show();
     }
 
     private void loginUser() {
@@ -66,13 +96,11 @@ public class MainActivity extends AppCompatActivity {
                     if (queryDocumentSnapshots.isEmpty()) {
                         Toast.makeText(this, "Неверный логин или пароль", Toast.LENGTH_SHORT).show();
                     } else {
-                        // Получаем ID документа пользователя
                         String userDocumentId = queryDocumentSnapshots.getDocuments().get(0).getId();
 
-                        // Передаем userDocumentId в CustomerMainActivity
                         Intent intent = new Intent(MainActivity.this, CustomerMainActivity.class);
                         intent.putExtra("USER_DOCUMENT_ID", userDocumentId);
-                        intent.putExtra("USER_ROLE", "customer"); // Передаем роль пользователя
+                        intent.putExtra("USER_ROLE", "customer");
                         startActivity(intent);
                     }
                 })

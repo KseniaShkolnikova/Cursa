@@ -130,9 +130,17 @@ public class SellerProfileActivity extends Fragment {
 
         // Заполняем поля текущими данными
         String[] fullNameParts = tvSellerName.getText().toString().split(" ");
-        etEditLastName.setText(fullNameParts[0]); // Фамилия
-        etEditFirstName.setText(fullNameParts[1]); // Имя
-        etEditMiddleName.setText(fullNameParts[2]); // Отчество
+        if (fullNameParts.length >= 1) {
+            etEditLastName.setText(fullNameParts[0]); // Фамилия
+        }
+        if (fullNameParts.length >= 2) {
+            etEditFirstName.setText(fullNameParts[1]); // Имя
+        }
+        if (fullNameParts.length >= 3) {
+            etEditMiddleName.setText(fullNameParts[2]); // Отчество
+        } else {
+            etEditMiddleName.setText(""); // Если отчества нет, оставляем поле пустым
+        }
         etEditEmail.setText(tvSellerLogin.getText().toString().replace("Логин: ", ""));
         etEditStoreName.setText(tvSellerShop.getText().toString().replace("Магазин: ", ""));
         etEditOGRNIP.setText(tvSellerOGRNIP.getText().toString().replace("ОГРНИП: ", ""));
