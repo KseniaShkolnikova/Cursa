@@ -9,6 +9,9 @@
         android:id="@+id/action_edit_account"
         android:title="Изменить аккаунт" />
     <item
+        android:id="@+id/action_change_password"
+        android:title="Изменить пароль" />
+    <item
         android:id="@+id/action_delete_account"
         android:title="Удалить аккаунт" />
 </menu>

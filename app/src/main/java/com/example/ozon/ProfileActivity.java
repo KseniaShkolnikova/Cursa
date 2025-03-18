@@ -20,6 +20,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class ProfileActivity extends Fragment {
 
@@ -103,6 +104,9 @@ public class ProfileActivity extends Fragment {
             } else if (item.getItemId() == R.id.action_edit_account) {
                 showEditAccountDialog();
                 return true;
+            } else if (item.getItemId() == R.id.action_change_password) {
+                showConfirmPasswordDialog();
+                return true;
             } else if (item.getItemId() == R.id.action_delete_account) {
                 deleteAccount();
                 return true;
@@ -111,6 +115,168 @@ public class ProfileActivity extends Fragment {
         });
 
         popupMenu.show();
+    }
+
+    private void showConfirmPasswordDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.confirm_password_dialog, null);
+
+        EditText etOldPassword = dialogView.findViewById(R.id.etOldPassword);
+        Button btnConfirm = dialogView.findViewById(R.id.btnConfirm);
+        Button btnForgotPassword = dialogView.findViewById(R.id.btnForgotPassword);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        btnConfirm.setOnClickListener(v -> {
+            String oldPassword = etOldPassword.getText().toString().trim();
+            if (oldPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Введите старый пароль", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            db.collection("users").document(userDocumentId)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                String currentPassword = document.getString("password");
+                                if (currentPassword.equals(oldPassword)) {
+                                    dialog.dismiss();
+                                    showChangePasswordDialog();
+                                } else {
+                                    Toast.makeText(requireContext(), "Неверный пароль", Toast.LENGTH_SHORT).show();
+                                    btnForgotPassword.setVisibility(View.VISIBLE);
+                                }
+                            } else {
+                                Toast.makeText(requireContext(), "Пользователь не найден", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(requireContext(), "Ошибка при проверке пароля", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        });
+
+        btnForgotPassword.setOnClickListener(v -> {
+            dialog.dismiss();
+            showForgotPasswordDialog(tvUserLogin.getText().toString().replace("Логин: ", ""));
+        });
+
+        dialog.show();
+    }
+
+    private void showForgotPasswordDialog(String email) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View view = getLayoutInflater().inflate(R.layout.password_recovery, null);
+        builder.setView(view);
+
+        EditText emailField = view.findViewById(R.id.loginField);
+        EditText codeField = view.findViewById(R.id.codeField);
+        Button sendCodeButton = view.findViewById(R.id.sendCodeButton);
+        Button changePasswordButton = view.findViewById(R.id.changePasswordButton);
+
+        emailField.setText(email); // Автоматическая подстановка email
+        emailField.setEnabled(false); // Запрет изменения email
+
+        // Изначально кнопка "Изменить пароль" заблокирована
+        changePasswordButton.setEnabled(false);
+        changePasswordButton.setAlpha(0.5f); // Визуально делаем кнопку полупрозрачной
+
+        AlertDialog dialog = builder.create();
+
+        // Генерация кода восстановления
+        String[] generatedCode = {null}; // Массив для хранения сгенерированного кода
+
+        sendCodeButton.setOnClickListener(v -> {
+            String enteredEmail = emailField.getText().toString().trim();
+            if (enteredEmail.isEmpty()) {
+                Toast.makeText(requireContext(), "Введите email", Toast.LENGTH_SHORT).show();
+            } else {
+                // Генерация и отправка кода восстановления
+                generatedCode[0] = generateVerificationCode();
+                sendPasswordRecoveryEmail(enteredEmail, generatedCode[0]);
+                Toast.makeText(requireContext(), "Код отправлен на " + enteredEmail, Toast.LENGTH_SHORT).show();
+
+                // Разблокируем кнопку "Изменить пароль"
+                changePasswordButton.setEnabled(true);
+                changePasswordButton.setAlpha(1.0f); // Визуально делаем кнопку активной
+            }
+        });
+
+        changePasswordButton.setOnClickListener(v -> {
+            String enteredCode = codeField.getText().toString().trim();
+
+            if (enteredCode.isEmpty()) {
+                Toast.makeText(requireContext(), "Введите код", Toast.LENGTH_SHORT).show();
+            } else if (generatedCode[0] == null) {
+                Toast.makeText(requireContext(), "Сначала отправьте код", Toast.LENGTH_SHORT).show();
+            } else if (!enteredCode.equals(generatedCode[0])) {
+                Toast.makeText(requireContext(), "Неверный код", Toast.LENGTH_SHORT).show();
+            } else {
+                // Если код верный, открываем окно для смены пароля
+                dialog.dismiss();
+                showChangePasswordDialog();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private String generateVerificationCode() {
+        Random random = new Random();
+        int code = 10000 + random.nextInt(90000);
+        return String.valueOf(code);
+    }
+
+    private void sendPasswordRecoveryEmail(String email, String code) {
+        String subject = "Восстановление пароля";
+        String body = "Код для восстановления пароля: " + code;
+        new SendEmailTask(email, subject, body).execute();
+    }
+
+    private void showChangePasswordDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.change_password_layout, null);
+
+        EditText newPasswordField = dialogView.findViewById(R.id.newPasswordField);
+        EditText confirmPasswordField = dialogView.findViewById(R.id.confirmPasswordField);
+        Button btnSave = dialogView.findViewById(R.id.savePasswordButton);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        btnSave.setOnClickListener(v -> {
+            String newPassword = newPasswordField.getText().toString().trim();
+            String confirmPassword = confirmPasswordField.getText().toString().trim();
+
+            if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
+            } else if (!newPassword.equals(confirmPassword)) {
+                Toast.makeText(requireContext(), "Пароли не совпадают", Toast.LENGTH_SHORT).show();
+            } else {
+                updatePassword(newPassword);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void updatePassword(String newPassword) {
+        if (userDocumentId == null) {
+            Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("users").document(userDocumentId)
+                .update("password", newPassword)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(requireContext(), "Пароль успешно изменен", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Ошибка при изменении пароля: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void checkIfSellerExistsBeforeRegistration() {
@@ -154,11 +320,10 @@ public class ProfileActivity extends Fragment {
             String lastName = etLastName.getText().toString();
             String firstName = etFirstName.getText().toString();
             String middleName;
-            if ( etMiddleName.getText().toString() !=""){
-                 middleName = etMiddleName.getText().toString();
-            }
-            else{
-                 middleName = null;
+            if (etMiddleName.getText().toString() != "") {
+                middleName = etMiddleName.getText().toString();
+            } else {
+                middleName = null;
             }
             String ogrnip = etOGRNIP.getText().toString();
             String inn = etINN.getText().toString();
