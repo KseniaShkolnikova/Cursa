@@ -27,6 +27,7 @@ public class ProductDetail extends Fragment {
     private Long price;
     private String userDocumentId;
     private String sellerId;
+    private int availableQuantity = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,7 +45,7 @@ public class ProductDetail extends Fragment {
 
         Bundle args = getArguments();
         if (args != null) {
-            documentId = args.getString("productId"); // Исправлено на "productId"
+            documentId = args.getString("productId");
             userDocumentId = args.getString("userDocumentId");
         }
 
@@ -73,6 +74,8 @@ public class ProductDetail extends Fragment {
                             imageBase64 = document.getString("imageBase64");
                             String productType = document.getString("productType");
                             sellerId = document.getString("sellerId");
+                            Long quantity = document.getLong("quantity");
+                            availableQuantity = quantity != null ? quantity.intValue() : 0;
 
                             productName.setText(name);
                             productPrice.setText(price + " рублей");
@@ -91,6 +94,9 @@ public class ProductDetail extends Fragment {
                             } else {
                                 storeNameTextView.setText("Магазин: Неизвестно");
                             }
+
+                            // Обновляем состояние кнопки после загрузки данных
+                            updateAddToCartButtonState();
                         } else {
                             Toast.makeText(getContext(), "Product not found", Toast.LENGTH_SHORT).show();
                         }
@@ -98,6 +104,18 @@ public class ProductDetail extends Fragment {
                         Toast.makeText(getContext(), "Error getting product", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void updateAddToCartButtonState() {
+        if (availableQuantity <= 0) {
+            addToCartButton.setEnabled(false);
+            addToCartButton.setBackgroundColor(getResources().getColor(R.color.light_gray));
+            addToCartButton.setText("Нет в наличии");
+        } else {
+            addToCartButton.setEnabled(true);
+            addToCartButton.setBackgroundColor(getResources().getColor(R.color.highlight_color));
+            addToCartButton.setText("В корзину");
+        }
     }
 
     private void loadStoreName(String sellerId) {
@@ -129,16 +147,28 @@ public class ProductDetail extends Fragment {
             return;
         }
 
+        if (availableQuantity <= 0) {
+            Toast.makeText(getContext(), "Товара нет в наличии", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String cartItemId = userDocumentId + "_" + documentId; // Create consistent ID format
+
         FirebaseFirestore.getInstance().collection("cart")
-                .document(documentId)
+                .document(cartItemId) // Use the new ID format
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document != null && document.exists()) {
                             int currentQuantity = document.getLong("quantity").intValue();
+                            if (currentQuantity + 1 > availableQuantity) {
+                                Toast.makeText(getContext(), "Недостаточно товара на складе", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
                             FirebaseFirestore.getInstance().collection("cart")
-                                    .document(documentId)
+                                    .document(cartItemId) // Use the new ID format
                                     .update("quantity", currentQuantity + 1)
                                     .addOnSuccessListener(aVoid -> {
                                         Toast.makeText(getContext(), "Количество товара увеличено", Toast.LENGTH_SHORT).show();
@@ -148,17 +178,21 @@ public class ProductDetail extends Fragment {
                                         Log.e("ProductDetail", "Ошибка при обновлении корзины", e);
                                     });
                         } else {
-                            Cart cart = new Cart(documentId, name, price.intValue(), 1, imageBase64, userDocumentId);
-                            FirebaseFirestore.getInstance().collection("cart")
-                                    .document(documentId)
-                                    .set(cart)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(getContext(), "Товар добавлен в корзину", Toast.LENGTH_SHORT).show();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(getContext(), "Ошибка при добавлении в корзину", Toast.LENGTH_SHORT).show();
-                                        Log.e("ProductDetail", "Ошибка при добавлении в корзину", e);
-                                    });
+                            if (availableQuantity > 0) {
+                                Cart cart = new Cart(documentId, name, price.intValue(), 1, imageBase64, userDocumentId);
+                                FirebaseFirestore.getInstance().collection("cart")
+                                        .document(cartItemId) // Use the new ID format
+                                        .set(cart)
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(getContext(), "Товар добавлен в корзину", Toast.LENGTH_SHORT).show();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(getContext(), "Ошибка при добавлении в корзину", Toast.LENGTH_SHORT).show();
+                                            Log.e("ProductDetail", "Ошибка при добавлении в корзину", e);
+                                        });
+                            } else {
+                                Toast.makeText(getContext(), "Товара нет в наличии", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     } else {
                         Toast.makeText(getContext(), "Ошибка при проверке корзины", Toast.LENGTH_SHORT).show();

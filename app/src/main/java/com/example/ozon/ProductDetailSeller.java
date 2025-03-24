@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ProductDetailSeller extends Fragment {
 
@@ -39,6 +41,7 @@ public class ProductDetailSeller extends Fragment {
     private ImageView productImage;
     private TextView productName, productPrice, productType, productDescription, productQuantity;
     private Button editProductButton;
+    private TextView revenueTextView;
     private String userDocumentId;
 
     private static final int PICK_IMAGE_REQUEST = 1;
@@ -52,6 +55,7 @@ public class ProductDetailSeller extends Fragment {
         productName = view.findViewById(R.id.productName);
         productPrice = view.findViewById(R.id.productPrice);
         productType = view.findViewById(R.id.productType);
+        revenueTextView = view.findViewById(R.id.productRevenue);
         productDescription = view.findViewById(R.id.productDescription);
         productQuantity = view.findViewById(R.id.productQuantity);
         editProductButton = view.findViewById(R.id.editProductButton);
@@ -96,6 +100,42 @@ public class ProductDetailSeller extends Fragment {
 
         return view;
     }
+    private void calculateRevenue() {
+        if (product == null) return;
+
+        FirebaseFirestore.getInstance().collection("orders")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        double totalRevenue = 0;
+                        int totalQuantitySold = 0;
+
+                        for (DocumentSnapshot order : task.getResult()) {
+                            List<Map<String, Object>> products = (List<Map<String, Object>>) order.get("products");
+                            if (products != null) {
+                                for (Map<String, Object> productInOrder : products) {
+                                    String productName = (String) productInOrder.get("name");
+                                    Long priceLong = (Long) productInOrder.get("price");
+                                    int price = priceLong != null ? priceLong.intValue() : 0;
+
+                                    // Сравниваем по имени и цене
+                                    if (product.getName().equals(productName) && product.getPrice() == price) {
+                                        Long quantityLong = (Long) productInOrder.get("quantity");
+                                        int quantity = quantityLong != null ? quantityLong.intValue() : 0;
+                                        totalRevenue += quantity * price;
+                                        totalQuantitySold += quantity;
+                                    }
+                                }
+                            }
+                        }
+
+                        revenueTextView.setText(String.format("Выручка: %.2f ₽ (продано %d шт.)", totalRevenue, totalQuantitySold));
+                    } else {
+                        revenueTextView.setText("Выручка: данные недоступны");
+                        Log.e("ProductDetailSeller", "Error getting orders", task.getException());
+                    }
+                });
+    }
 
     private void updateUI() {
         if (product != null) {
@@ -104,7 +144,7 @@ public class ProductDetailSeller extends Fragment {
             productType.setText(String.format("Тип товара: %s", product.getProductType()));
             productDescription.setText(product.getDescription());
             productQuantity.setText(String.format("Количество: %d", product.getQuantity()));
-
+            calculateRevenue();
             if (product.getImageBase64() != null && !product.getImageBase64().isEmpty()) {
                 Bitmap bitmap = base64ToBitmap(product.getImageBase64());
                 if (bitmap != null) {

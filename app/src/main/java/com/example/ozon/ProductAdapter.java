@@ -68,14 +68,33 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             holder.productImage.setImageResource(R.drawable.no_photo);
         }
 
-        // Обработка клика на товар
+        // Обработка кнопки "Добавить в корзину" в зависимости от количества
+        if (holder.addToCartButton != null) {
+            if (product.getQuantity() <= 0) {
+                // Если товара нет в наличии
+                holder.addToCartButton.setEnabled(false);
+                holder.addToCartButton.setBackgroundColor(
+                        holder.itemView.getContext().getResources().getColor(R.color.light_gray));
+                holder.addToCartButton.setText("Нет в наличии");
+            } else {
+                // Если товар есть в наличии
+                holder.addToCartButton.setEnabled(true);
+                holder.addToCartButton.setBackgroundColor(
+                        holder.itemView.getContext().getResources().getColor(R.color.highlight_color));
+                holder.addToCartButton.setText("В корзину");
+                holder.addToCartButton.setOnClickListener(v -> {
+                    addToCart(product, holder);
+                });
+            }
+        }
+
+        // Остальной код метода остается без изменений
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onItemClick(product);
             }
         });
 
-        // Если это продавец, добавляем кнопки редактирования и удаления
         if (userRole.equals("seller")) {
             if (holder.editButton != null) {
                 holder.editButton.setOnClickListener(v -> {
@@ -88,13 +107,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                     deleteProduct(product, holder);
                 });
             }
-        }
-
-        // Обработка клика на кнопку "Добавить в корзину"
-        if (holder.addToCartButton != null) {
-            holder.addToCartButton.setOnClickListener(v -> {
-                addToCart(product, holder);
-            });
         }
     }
 
@@ -124,57 +136,81 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     private void addToCart(Product product, ProductViewHolder holder) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String productId = product.getId();
+        String cartItemId = userDocumentId + "_" + productId; // Уникальный ID для корзины
 
-        // Проверяем, существует ли товар в корзине
-        db.collection("cart")
+        db.collection("products")
                 .document(productId)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        // Товар уже есть в корзине, увеличиваем quantity на 1
-                        Cart existingCartItem = documentSnapshot.toObject(Cart.class);
-                        if (existingCartItem != null) {
-                            existingCartItem.setQuantity(existingCartItem.getQuantity() + 1);
+                .addOnSuccessListener(productDocument -> {
+                    if (productDocument.exists()) {
+                        int availableQuantity = productDocument.getLong("quantity").intValue();
 
-                            // Обновляем документ в Firestore
-                            db.collection("cart")
-                                    .document(productId)
-                                    .set(existingCartItem)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(holder.itemView.getContext(), "Количество товара увеличено", Toast.LENGTH_SHORT).show();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(holder.itemView.getContext(), "Ошибка при обновлении корзины", Toast.LENGTH_SHORT).show();
-                                        Log.e("ProductAdapter", "Ошибка при обновлении корзины", e);
-                                    });
+                        if (availableQuantity <= 0) {
+                            holder.addToCartButton.setEnabled(false);
+                            holder.addToCartButton.setBackgroundColor(
+                                    holder.itemView.getContext().getResources().getColor(R.color.light_gray));
+                            Toast.makeText(holder.itemView.getContext(),
+                                    "Товар отсутствует на складе", Toast.LENGTH_SHORT).show();
+                            return;
                         }
-                    } else {
-                        // Товара нет в корзине, добавляем новый
-                        Cart cartItem = new Cart(
-                                productId,
-                                product.getName(),
-                                product.getPrice(),
-                                1, // Количество по умолчанию
-                                product.getImageBase64(),
-                                userDocumentId
-                        );
 
+                        // Проверяем, есть ли уже товар в корзине
                         db.collection("cart")
-                                .document(productId)
-                                .set(cartItem)
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(holder.itemView.getContext(), "Товар добавлен в корзину", Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(holder.itemView.getContext(), "Ошибка при добавлении в корзину", Toast.LENGTH_SHORT).show();
-                                    Log.e("ProductAdapter", "Ошибка при добавлении в корзину", e);
+                                .document(cartItemId)
+                                .get()
+                                .addOnSuccessListener(cartDocument -> {
+                                    if (cartDocument.exists()) {
+                                        // Увеличиваем количество
+                                        Cart existingCart = cartDocument.toObject(Cart.class);
+                                        int newQuantity = existingCart.getQuantity() + 1;
+
+                                        if (newQuantity <= availableQuantity) {
+                                            db.collection("cart")
+                                                    .document(cartItemId)
+                                                    .update("quantity", newQuantity)
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        Toast.makeText(holder.itemView.getContext(),
+                                                                "Количество увеличено", Toast.LENGTH_SHORT).show();
+                                                    });
+                                        } else {
+                                            Toast.makeText(holder.itemView.getContext(),
+                                                    "Недостаточно товара на складе", Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        // Добавляем новый товар в корзину
+                                        Cart newCartItem = new Cart(
+                                                productId,
+                                                product.getName(),
+                                                product.getPrice(),
+                                                1,
+                                                product.getImageBase64(),
+                                                userDocumentId
+                                        );
+
+                                        db.collection("cart")
+                                                .document(cartItemId)
+                                                .set(newCartItem)
+                                                .addOnSuccessListener(aVoid -> {
+                                                    Toast.makeText(holder.itemView.getContext(),
+                                                            "Товар добавлен в корзину", Toast.LENGTH_SHORT).show();
+                                                });
+                                    }
                                 });
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(holder.itemView.getContext(), "Ошибка при проверке корзины", Toast.LENGTH_SHORT).show();
-                    Log.e("ProductAdapter", "Ошибка при проверке корзины", e);
+                    Toast.makeText(holder.itemView.getContext(),
+                            "Ошибка при проверке товара", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    // Вспомогательные методы для отображения уведомлений
+    private void showSuccessToast(ProductViewHolder holder, String message) {
+        Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showErrorToast(ProductViewHolder holder, String message) {
+        Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     // Метод для редактирования товара

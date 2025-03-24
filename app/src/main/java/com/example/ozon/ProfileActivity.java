@@ -370,7 +370,19 @@ public class ProfileActivity extends Fragment {
                             db.collection("users")
                                     .add(sellerData)
                                     .addOnSuccessListener(documentReference -> {
+                                        String newSellerDocumentId = documentReference.getId(); // Получаем ID нового документа
                                         Toast.makeText(requireContext(), "Аккаунт продавца успешно создан", Toast.LENGTH_SHORT).show();
+
+                                        // Запуск SellerMainActivity и передача данных
+                                        Intent intent = new Intent(requireContext(), SellerMainActivity.class);
+                                        intent.putExtra("USER_DOCUMENT_ID", newSellerDocumentId); // Передаем новый ID
+                                        intent.putExtra("USER_ROLE", "seller"); // Роль продавца
+                                        startActivity(intent);
+
+                                        // Закрытие текущего активити, если необходимо
+                                        if (getActivity() != null) {
+                                            getActivity().finish();
+                                        }
                                     })
                                     .addOnFailureListener(e -> {
                                         Toast.makeText(requireContext(), "Ошибка при создании аккаунта продавца: " + e.getMessage(), Toast.LENGTH_SHORT).show();

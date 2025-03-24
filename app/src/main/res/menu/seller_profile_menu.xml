@@ -4,9 +4,13 @@
         android:id="@+id/action_edit_account"
         android:title="Редактировать аккаунт" />
     <item
+        android:id="@+id/action_change_password"
+        android:title="Сменить пароль" />
+    <item
         android:id="@+id/action_delete_account"
         android:title="Удалить аккаунт" />
     <item
         android:id="@+id/action_logout"
         android:title="Выйти" />
+
 </menu>

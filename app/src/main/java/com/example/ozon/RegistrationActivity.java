@@ -60,20 +60,35 @@ public class RegistrationActivity extends AppCompatActivity {
             Toast.makeText(RegistrationActivity.this, "Заполните имя", Toast.LENGTH_SHORT).show();
             return;
         }
-        db.collection("users").get().addOnSuccessListener(queryDocumentSnapshots -> {
-            Map<String, Object> user = new HashMap<>();
-            user.put("name", name);
-            user.put("email", login);
-            user.put("password", password);
-            user.put("role", "customer");
 
-            db.collection("users").add(user)
-                    .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(this, "Запись создана", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Запись не создана: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        });
+        // Создаем объект пользователя
+        Map<String, Object> user = new HashMap<>();
+        user.put("name", name);
+        user.put("email", login);
+        user.put("password", password);
+        user.put("role", "customer");
+
+        // Добавляем пользователя в Firestore
+        db.collection("users").add(user)
+                .addOnSuccessListener(documentReference -> {
+                    // Получаем ID созданного документа
+                    String userDocumentId = documentReference.getId();
+
+                    // Уведомляем пользователя об успешной регистрации
+                    Toast.makeText(this, "Регистрация успешна", Toast.LENGTH_SHORT).show();
+
+                    // Переходим на CustomerMainActivity и передаем данные
+                    Intent intent = new Intent(RegistrationActivity.this, CustomerMainActivity.class);
+                    intent.putExtra("USER_DOCUMENT_ID", userDocumentId); // Передаем ID документа
+                    intent.putExtra("USER_ROLE", "customer"); // Передаем роль пользователя
+                    startActivity(intent);
+
+                    // Закрываем текущую активность
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    // Уведомляем пользователя об ошибке
+                    Toast.makeText(this, "Ошибка при регистрации: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

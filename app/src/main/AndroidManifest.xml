@@ -33,10 +33,6 @@
             android:exported="true" />
 
         <activity
-            android:name=".PasswordRecoveryActivity"
-            android:exported="true" />
-
-        <activity
             android:name=".CustomerMainActivity"
             android:exported="true" />
 

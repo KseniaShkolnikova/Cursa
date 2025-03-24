@@ -61,15 +61,45 @@ public class CartAdapter extends FirestoreRecyclerAdapter<Cart, CartAdapter.Cart
         });
     }
 
-    private void updateQuantity(String documentId, int newQuantity, Context context) {
-        FirebaseFirestore.getInstance().collection("cart")
-                .document(documentId)
-                .update("quantity", newQuantity)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(context, "Количество обновлено", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(context, "Ошибка при обновлении количества", Toast.LENGTH_SHORT).show();
+    private void updateQuantity(String cartItemId, int newQuantity, Context context) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Сначала получаем cartItem чтобы узнать productId
+        db.collection("cart")
+                .document(cartItemId)
+                .get()
+                .addOnSuccessListener(cartDocument -> {
+                    Cart cart = cartDocument.toObject(Cart.class);
+                    if (cart != null) {
+                        String productId = cart.getProductId();
+
+                        // Проверяем количество товара
+                        db.collection("products")
+                                .document(productId)
+                                .get()
+                                .addOnSuccessListener(productDocument -> {
+                                    if (productDocument.exists()) {
+                                        int availableQuantity = productDocument.getLong("quantity").intValue();
+
+                                        if (newQuantity <= availableQuantity) {
+                                            // Обновляем количество в корзине
+                                            db.collection("cart")
+                                                    .document(cartItemId)
+                                                    .update("quantity", newQuantity)
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        Toast.makeText(context,
+                                                                "Количество обновлено", Toast.LENGTH_SHORT).show();
+                                                    });
+                                        } else {
+                                            Toast.makeText(context,
+                                                    "Недостаточно товара на складе", Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        Toast.makeText(context,
+                                                "Товар не найден", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    }
                 });
     }
 

@@ -3,6 +3,7 @@ package com.example.ozon;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +20,14 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class SellerProfileActivity extends Fragment {
 
     private TextView tvSellerName, tvSellerLogin, tvSellerShop, tvSellerOGRNIP, tvSellerINN;
     private ImageView btnMenu;
     private FirebaseFirestore db;
-    private String userDocumentId;
+    private String userDocumentId, userRole;
 
     @Nullable
     @Override
@@ -37,6 +39,7 @@ public class SellerProfileActivity extends Fragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             userDocumentId = bundle.getString("USER_DOCUMENT_ID");
+            userRole = bundle.getString("USER_ROLE");
         }
 
         tvSellerName = view.findViewById(R.id.tvSellerName);
@@ -65,17 +68,39 @@ public class SellerProfileActivity extends Fragment {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
+                            // Логируем все данные документа
+                            for (Map.Entry<String, Object> entry : document.getData().entrySet()) {
+                                Log.d("FirestoreData", entry.getKey() + ": " + entry.getValue());
+                            }
+
+                            // Проверяем, что роль пользователя - seller
+                            if (userRole == null || !userRole.equals("seller")) {
+                                Toast.makeText(requireContext(), "Доступ запрещен: вы не продавец", Toast.LENGTH_SHORT).show();
+                                // Перенаправляем пользователя на главный экран или экран входа
+                                Intent intent = new Intent(requireContext(), MainActivity.class);
+                                startActivity(intent);
+                                if (getActivity() != null) {
+                                    getActivity().finish();
+                                }
+                                return;
+                            }
+
                             String firstName = document.getString("firstName");
                             String lastName = document.getString("lastName");
                             String middleName = document.getString("middleName");
                             String email = document.getString("email");
-                            String password = document.getString("password");
                             String storeName = document.getString("storeName");
                             String ogrnip = document.getString("ogrnip");
                             String inn = document.getString("inn");
 
+                            // Проверяем, что данные не null
+                            if (firstName == null || lastName == null || email == null || storeName == null || ogrnip == null || inn == null) {
+                                Toast.makeText(requireContext(), "Некоторые данные продавца отсутствуют", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
                             // Форматируем ФИО
-                            String fullName = lastName + " " + firstName + " " + middleName;
+                            String fullName = lastName + " " + firstName + " " + (middleName != null ? middleName : "");
                             tvSellerName.setText(fullName);
                             tvSellerLogin.setText("Логин: " + email);
                             tvSellerShop.setText("Магазин: " + storeName);
@@ -104,11 +129,171 @@ public class SellerProfileActivity extends Fragment {
             } else if (item.getItemId() == R.id.action_logout) {
                 logout();
                 return true;
+            } else if (item.getItemId() == R.id.action_change_password) {
+                showConfirmPasswordDialog();
+                return true;
             }
             return false;
         });
 
         popupMenu.show();
+    }
+
+    private void showConfirmPasswordDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.confirm_password_dialog, null);
+
+        EditText etOldPassword = dialogView.findViewById(R.id.etOldPassword);
+        Button btnConfirm = dialogView.findViewById(R.id.btnConfirm);
+        Button btnForgotPassword = dialogView.findViewById(R.id.btnForgotPassword);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        btnConfirm.setOnClickListener(v -> {
+            String oldPassword = etOldPassword.getText().toString().trim();
+            if (oldPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Введите старый пароль", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            db.collection("users").document(userDocumentId)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                String currentPassword = document.getString("password");
+                                if (currentPassword != null && currentPassword.equals(oldPassword)) {
+                                    dialog.dismiss();
+                                    showChangePasswordDialog();
+                                } else {
+                                    Toast.makeText(requireContext(), "Неверный пароль", Toast.LENGTH_SHORT).show();
+                                    btnForgotPassword.setVisibility(View.VISIBLE);
+                                }
+                            } else {
+                                Toast.makeText(requireContext(), "Пользователь не найден", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(requireContext(), "Ошибка при проверке пароля", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        });
+
+        btnForgotPassword.setOnClickListener(v -> {
+            dialog.dismiss();
+            showForgotPasswordDialog(tvSellerLogin.getText().toString().replace("Логин: ", ""));
+        });
+
+        dialog.show();
+    }
+
+    private void showForgotPasswordDialog(String email) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View view = getLayoutInflater().inflate(R.layout.password_recovery, null);
+        builder.setView(view);
+
+        EditText emailField = view.findViewById(R.id.loginField);
+        EditText codeField = view.findViewById(R.id.codeField);
+        Button sendCodeButton = view.findViewById(R.id.sendCodeButton);
+        Button changePasswordButton = view.findViewById(R.id.changePasswordButton);
+
+        emailField.setText(email);
+        emailField.setEnabled(false);
+
+        changePasswordButton.setEnabled(false);
+        changePasswordButton.setAlpha(0.5f);
+
+        AlertDialog dialog = builder.create();
+
+        String[] generatedCode = {null};
+
+        sendCodeButton.setOnClickListener(v -> {
+            String enteredEmail = emailField.getText().toString().trim();
+            if (enteredEmail.isEmpty()) {
+                Toast.makeText(requireContext(), "Введите email", Toast.LENGTH_SHORT).show();
+            } else {
+                generatedCode[0] = generateVerificationCode();
+                sendPasswordRecoveryEmail(enteredEmail, generatedCode[0]);
+                Toast.makeText(requireContext(), "Код отправлен на " + enteredEmail, Toast.LENGTH_SHORT).show();
+
+                changePasswordButton.setEnabled(true);
+                changePasswordButton.setAlpha(1.0f);
+            }
+        });
+
+        changePasswordButton.setOnClickListener(v -> {
+            String enteredCode = codeField.getText().toString().trim();
+
+            if (enteredCode.isEmpty()) {
+                Toast.makeText(requireContext(), "Введите код", Toast.LENGTH_SHORT).show();
+            } else if (generatedCode[0] == null) {
+                Toast.makeText(requireContext(), "Сначала отправьте код", Toast.LENGTH_SHORT).show();
+            } else if (!enteredCode.equals(generatedCode[0])) {
+                Toast.makeText(requireContext(), "Неверный код", Toast.LENGTH_SHORT).show();
+            } else {
+                dialog.dismiss();
+                showChangePasswordDialog();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private String generateVerificationCode() {
+        Random random = new Random();
+        int code = 10000 + random.nextInt(90000);
+        return String.valueOf(code);
+    }
+
+    private void sendPasswordRecoveryEmail(String email, String code) {
+        String subject = "Восстановление пароля";
+        String body = "Код для восстановления пароля: " + code;
+        new SendEmailTask(email, subject, body).execute();
+    }
+
+    private void showChangePasswordDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.change_password_layout, null);
+
+        EditText newPasswordField = dialogView.findViewById(R.id.newPasswordField);
+        EditText confirmPasswordField = dialogView.findViewById(R.id.confirmPasswordField);
+        Button btnSave = dialogView.findViewById(R.id.savePasswordButton);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        btnSave.setOnClickListener(v -> {
+            String newPassword = newPasswordField.getText().toString().trim();
+            String confirmPassword = confirmPasswordField.getText().toString().trim();
+
+            if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
+            } else if (!newPassword.equals(confirmPassword)) {
+                Toast.makeText(requireContext(), "Пароли не совпадают", Toast.LENGTH_SHORT).show();
+            } else {
+                updatePassword(newPassword);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void updatePassword(String newPassword) {
+        if (userDocumentId == null) {
+            Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("users").document(userDocumentId)
+                .update("password", newPassword)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(requireContext(), "Пароль успешно изменен", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Ошибка при изменении пароля: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void showEditSellerDialog() {
@@ -128,18 +313,17 @@ public class SellerProfileActivity extends Fragment {
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
 
-        // Заполняем поля текущими данными
         String[] fullNameParts = tvSellerName.getText().toString().split(" ");
         if (fullNameParts.length >= 1) {
-            etEditLastName.setText(fullNameParts[0]); // Фамилия
+            etEditLastName.setText(fullNameParts[0]);
         }
         if (fullNameParts.length >= 2) {
-            etEditFirstName.setText(fullNameParts[1]); // Имя
+            etEditFirstName.setText(fullNameParts[1]);
         }
         if (fullNameParts.length >= 3) {
-            etEditMiddleName.setText(fullNameParts[2]); // Отчество
+            etEditMiddleName.setText(fullNameParts[2]);
         } else {
-            etEditMiddleName.setText(""); // Если отчества нет, оставляем поле пустым
+            etEditMiddleName.setText("");
         }
         etEditEmail.setText(tvSellerLogin.getText().toString().replace("Логин: ", ""));
         etEditStoreName.setText(tvSellerShop.getText().toString().replace("Магазин: ", ""));
@@ -188,7 +372,7 @@ public class SellerProfileActivity extends Fragment {
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(requireContext(), "Данные успешно обновлены", Toast.LENGTH_SHORT).show();
-                    loadSellerData(); // Перезагружаем данные
+                    loadSellerData();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Ошибка при обновлении данных: " + e.getMessage(), Toast.LENGTH_SHORT).show();

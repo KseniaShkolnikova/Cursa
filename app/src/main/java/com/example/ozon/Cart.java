@@ -4,18 +4,19 @@ import com.google.firebase.firestore.DocumentId;
 
 public class Cart {
     @DocumentId
-    private String documentId; // Уникальный идентификатор документа
+    private String documentId; // ID документа в корзине
+    private String productId;  // ID товара из коллекции products
     private String name;
     private int price;
     private int quantity;
     private String imageBase64;
     private String userId;
 
-    // Пустой конструктор для Firestore
     public Cart() {}
 
-    public Cart(String documentId, String name, int price, int quantity, String imageBase64, String userId) {
-        this.documentId = documentId;
+    public Cart(String productId, String name, int price, int quantity,
+                String imageBase64, String userId) {
+        this.productId = productId;
         this.name = name;
         this.price = price;
         this.quantity = quantity;
@@ -23,12 +24,21 @@ public class Cart {
         this.userId = userId;
     }
 
+    // Геттеры и сеттеры
     public String getDocumentId() {
         return documentId;
     }
 
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 
     public String getUserId() {
