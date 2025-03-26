@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardUseCompatPadding="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#FFFFFF">
+
+        <!-- Horizontal RecyclerView for products -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/productsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Order status -->
+        <TextView
+            android:id="@+id/tvOrderStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="В доставке"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Order details -->
+        <TextView
+            android:id="@+id/tvOrderDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Адрес: ул. Примерная, д. 1\nСумма: 1000 ₽\nДней до доставки: 3"
+            android:textColor="#005BFF"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

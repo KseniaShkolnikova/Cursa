@@ -2,8 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
+
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -13,6 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Ozon"
         tools:targetApi="31">
+        <meta-data
+            android:name="com.yandex.mapkit.apikey"
+            android:value="3847ea55-35fb-4a64-a196-4839fac767be" />
 
         <!-- Главная активность -->
         <activity
@@ -45,6 +53,11 @@
         <activity
             android:name=".SellerMainActivity"
             android:exported="true" />
+        <activity
+            android:name=".MapSelectionActivity"
+            android:exported="true"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+    </activity>
 
     </application>
 

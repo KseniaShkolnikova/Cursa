@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Ozon</string>
+    <string name="select_location_first">Выберите место на карте</string>
+    <string name="selected_location">Выбрано: %s</string>
+    <string name="address_search_error">Ошибка при поиске адреса</string>
+    <string name="address_parse_error">Ошибка обработки адреса</string>
+    <string name="network_error">Нет интернет-соединения</string>
+    <string name="server_error">Ошибка сервера</string>
+    <string name="location_permission_denied">Для точного определения местоположения нужны разрешения</string>
 </resources>

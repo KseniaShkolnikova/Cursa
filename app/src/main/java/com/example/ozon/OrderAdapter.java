@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderAdapter extends FirestoreRecyclerAdapter<Cart, OrderAdapter.OrderViewHolder> {
-    private List<Cart> cartItems = new ArrayList<>();
 
     public OrderAdapter(@NonNull FirestoreRecyclerOptions<Cart> options) {
         super(options);
@@ -23,14 +22,23 @@ public class OrderAdapter extends FirestoreRecyclerAdapter<Cart, OrderAdapter.Or
 
     @Override
     protected void onBindViewHolder(@NonNull OrderViewHolder holder, int position, @NonNull Cart cart) {
-        cartItems.add(cart); // Добавляем товар в список
         holder.productName.setText(cart.getName());
         holder.productPrice.setText(String.valueOf(cart.getPrice()) + " ₽");
         holder.productQuantity.setText("Количество: " + cart.getQuantity());
     }
 
+    @Override
+    public void onDataChanged() {
+        super.onDataChanged();
+        notifyDataSetChanged(); // Ensure RecyclerView is fully updated
+    }
+
     public List<Cart> getCartItems() {
-        return cartItems;
+        List<Cart> items = new ArrayList<>();
+        for (int i = 0; i < getItemCount(); i++) {
+            items.add(getItem(i));
+        }
+        return items;
     }
 
     @NonNull

@@ -14,9 +14,6 @@
         android:padding="16dp">
 
         <!-- Верхнее меню (Toolbar) -->
-
-        <!-- Информация о пользователе -->
-
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="wrap_content"
@@ -44,6 +41,7 @@
                 android:tint="#005BFF" />
         </androidx.appcompat.widget.Toolbar>
 
+        <!-- Информация о пользователе -->
         <TextView
             android:id="@+id/tvUserName"
             android:layout_width="wrap_content"
@@ -90,10 +88,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@color/text_color_primary"
-            android:layout_marginBottom="16dp">
-
-            <!-- Карты будут добавляться динамически -->
-        </LinearLayout>
+            android:layout_marginBottom="16dp"/>
 
         <!-- Кнопка добавления новой карты -->
         <Button
@@ -104,7 +99,44 @@
             android:backgroundTint="#00A2FF"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
-            android:fontFamily="@font/ramona_light"/>
+            android:fontFamily="@font/ramona_light"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Заказы в доставке -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Заказы в доставке"
+            android:textColor="#001A34"
+            android:textSize="18sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:id="@+id/inDeliveryOrdersContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/text_color_primary"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Выполненные заказы -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Выполненные заказы"
+            android:textColor="#001A34"
+            android:textSize="18sp"
+            android:fontFamily="@font/ramona_bold"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:id="@+id/completedOrdersContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/text_color_primary"
+            android:layout_marginBottom="16dp"/>
+
     </LinearLayout>
 </ScrollView>
-

@@ -1,6 +1,7 @@
 package com.example.ozon;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,6 +29,7 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.Transaction;
 
@@ -34,8 +37,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class OrderActivity extends Fragment {
+
+    static final int MAP_SELECTION_REQUEST_CODE = 1001;
 
     private RecyclerView recyclerView;
     private CheckBox agreementCheckBox;
@@ -54,27 +60,36 @@ public class OrderActivity extends Fragment {
     private String userDocumentId, userRole;
     private String selectedCardNumber = null;
     private LinearLayout cardsContainer;
+    private String deliveryAddress = null;
+    private GeoPoint deliveryLocation;
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == MAP_SELECTION_REQUEST_CODE && resultCode == getActivity().RESULT_OK) {
+            if (data != null) {
+                deliveryAddress = data.getStringExtra("SELECTED_ADDRESS");
+                double lat = data.getDoubleExtra("LATITUDE", 0);
+                double lng = data.getDoubleExtra("LONGITUDE", 0);
+                deliveryLocation = new GeoPoint(lat, lng);
+
+                showToast("Адрес выбран: " + deliveryAddress);
+                if (checkOrderConditionsExceptAddress() && agreementCheckBox.isChecked() && selectedCardNumber != null) {
+                    processPayment(); // Proceed to payment after address selection
+                }
+            }
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.order_layout, container, false);
-
-        // Инициализация UI компонентов
         initViews(view);
-
-        // Получение данных пользователя
         getUserData();
-
-        // Настройка адаптера для Spinner
         setupBankCardSpinner();
-
-        // Загрузка данных
         loadCartItems();
         loadBankCards();
-
-        // Установка обработчиков событий
         setupEventListeners();
-
         return view;
     }
 
@@ -89,7 +104,15 @@ public class OrderActivity extends Fragment {
         addCardButton = view.findViewById(R.id.addCardButton);
         cardsContainer = view.findViewById(R.id.cardsContainer);
 
-        // Изначально кнопка оплаты заблокирована
+        payButton.setOnClickListener(v -> {
+            if (checkOrderConditionsExceptAddress()) {
+                if (deliveryAddress == null || deliveryAddress.isEmpty()) {
+                    showDeliveryAddressDialog(); // Show address dialog if address is missing
+                } else {
+                    processPayment(); // Proceed to payment if address is already set
+                }
+            }
+        });
         payButton.setEnabled(false);
         payButton.setAlpha(0.5f);
     }
@@ -100,7 +123,7 @@ public class OrderActivity extends Fragment {
             userDocumentId = bundle.getString("USER_DOCUMENT_ID");
             userRole = bundle.getString("USER_ROLE");
         } else {
-            Toast.makeText(getContext(), "Ошибка: данные пользователя не переданы", Toast.LENGTH_SHORT).show();
+            showToast("Ошибка: данные пользователя не переданы");
         }
     }
 
@@ -113,11 +136,7 @@ public class OrderActivity extends Fragment {
     private void setupEventListeners() {
         protectionButton.setOnClickListener(v -> toggleProtection());
 
-        agreementCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            updatePayButtonState();
-        });
-
-        payButton.setOnClickListener(v -> processPayment());
+        agreementCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> updatePayButtonState());
 
         bankCardSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -138,6 +157,131 @@ public class OrderActivity extends Fragment {
         addCardButton.setOnClickListener(v -> showAddCardDialog());
     }
 
+    private void loadCartItems() {
+        Query query = FirebaseFirestore.getInstance()
+                .collection("cart")
+                .whereEqualTo("userId", getCurrentUserId());
+
+        FirestoreRecyclerOptions<Cart> options = new FirestoreRecyclerOptions.Builder<Cart>()
+                .setQuery(query, Cart.class)
+                .setLifecycleOwner(this)
+                .build();
+
+        orderAdapter = new OrderAdapter(options);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(orderAdapter);
+
+        orderAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                updateTotalFromAdapter();
+            }
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                updateTotalFromAdapter();
+            }
+
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                updateTotalFromAdapter();
+            }
+        });
+    }
+
+    private void loadBankCards() {
+        String userId = getCurrentUserId();
+        if (userId != null) {
+            FirebaseFirestore.getInstance().collection("cards")
+                    .whereEqualTo("userId", userId)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        bankCards.clear();
+                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                            String cardNumber = document.getString("cardNumber");
+                            if (cardNumber != null) {
+                                bankCards.add(cardNumber);
+                            }
+                        }
+
+                        if (bankCards.isEmpty()) {
+                            selectedCardInfo.setText("Нет сохраненных карт");
+                            addCardButton.setVisibility(View.VISIBLE);
+                            bankCardSpinner.setVisibility(View.GONE);
+                            payButton.setEnabled(false);
+                            payButton.setAlpha(0.5f);
+                        } else {
+                            addCardButton.setVisibility(View.GONE);
+                            bankCardSpinner.setVisibility(View.VISIBLE);
+                            bankCardAdapter.notifyDataSetChanged();
+                        }
+                    })
+                    .addOnFailureListener(e -> showToast("Ошибка при загрузке карт"));
+        }
+    }
+
+    private void showDeliveryAddressDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_map, null);
+        builder.setView(dialogView);
+
+        Button btnSelectOnMap = dialogView.findViewById(R.id.btnSelectOnMap);
+        Button btnManualInput = dialogView.findViewById(R.id.btnManualInput);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        AlertDialog dialog = builder.create();
+
+        btnSelectOnMap.setOnClickListener(v -> {
+            dialog.dismiss();
+            startMapSelection();
+        });
+
+        btnManualInput.setOnClickListener(v -> {
+            dialog.dismiss();
+            showManualAddressInputDialog();
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    private void startMapSelection() {
+        Intent intent = new Intent(getActivity(), MapSelectionActivity.class);
+        startActivityForResult(intent, MAP_SELECTION_REQUEST_CODE);
+    }
+
+    private void showManualAddressInputDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_manual_addres, null);
+        builder.setView(dialogView);
+
+        EditText etAddress = dialogView.findViewById(R.id.etAddress);
+        Button btnConfirm = dialogView.findViewById(R.id.btnConfirm);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        AlertDialog dialog = builder.create();
+
+        btnConfirm.setOnClickListener(v -> {
+            String address = etAddress.getText().toString().trim();
+            if (!address.isEmpty()) {
+                deliveryAddress = address;
+                deliveryLocation = null;
+                showToast("Адрес сохранен: " + deliveryAddress);
+                dialog.dismiss();
+                if (checkOrderConditionsExceptAddress()) {
+                    processPayment(); // Proceed to payment after address input
+                }
+            } else {
+                showToast("Введите адрес");
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
     private void showAddCardDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.add_card_dialog, null);
@@ -149,7 +293,6 @@ public class OrderActivity extends Fragment {
         Button btnAdd = dialogView.findViewById(R.id.btnAdd);
         Button btnCancel = dialogView.findViewById(R.id.btnCancel);
 
-        // Форматирование номера карты (добавление пробелов через каждые 4 цифры)
         etCardNumber.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -176,7 +319,6 @@ public class OrderActivity extends Fragment {
             }
         });
 
-        // Форматирование даты истечения срока (добавление / после 2 цифр)
         etCardExpiry.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -212,22 +354,22 @@ public class OrderActivity extends Fragment {
 
     private boolean validateCardInput(String cardNumber, String cvv, String expiryDate) {
         if (cardNumber.isEmpty() || cvv.isEmpty() || expiryDate.isEmpty()) {
-            Toast.makeText(getContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
+            showToast("Заполните все поля");
             return false;
         }
 
         if (cardNumber.length() != 16) {
-            Toast.makeText(getContext(), "Номер карты должен содержать 16 цифр", Toast.LENGTH_SHORT).show();
+            showToast("Номер карты должен содержать 16 цифр");
             return false;
         }
 
         if (cvv.length() != 3) {
-            Toast.makeText(getContext(), "CVV код должен содержать 3 цифры", Toast.LENGTH_SHORT).show();
+            showToast("CVV код должен содержать 3 цифры");
             return false;
         }
 
         if (expiryDate.length() != 5 || !expiryDate.contains("/")) {
-            Toast.makeText(getContext(), "Введите дату в формате ММ/ГГ", Toast.LENGTH_SHORT).show();
+            showToast("Введите дату в формате ММ/ГГ");
             return false;
         }
 
@@ -237,7 +379,7 @@ public class OrderActivity extends Fragment {
     private void saveCardToFirestore(String cardNumber, String cvv, String expiryDate) {
         String userId = getCurrentUserId();
         if (userId == null) {
-            Toast.makeText(getContext(), "Ошибка: пользователь не авторизован", Toast.LENGTH_SHORT).show();
+            showToast("Ошибка: пользователь не авторизован");
             return;
         }
 
@@ -250,16 +392,65 @@ public class OrderActivity extends Fragment {
         FirebaseFirestore.getInstance().collection("cards")
                 .add(cardData)
                 .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(getContext(), "Карта успешно добавлена", Toast.LENGTH_SHORT).show();
-                    loadBankCards(); // Перезагружаем список карт
+                    showToast("Карта успешно добавлена");
+                    loadBankCards();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Ошибка при добавлении карты: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> showToast("Ошибка при добавлении карты: " + e.getMessage()));
+    }
+
+    private boolean checkOrderConditions() {
+        if (deliveryAddress == null || deliveryAddress.isEmpty()) {
+            showToast("Адрес доставки не выбран");
+            return false;
+        }
+
+        if (!agreementCheckBox.isChecked()) {
+            showToast("Подтвердите согласие с условиями");
+            return false;
+        }
+
+        if (selectedCardNumber == null) {
+            showToast("Выберите карту для оплаты");
+            return false;
+        }
+
+        if (total <= 0) {
+            showToast("Корзина пуста");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkOrderConditionsExceptAddress() {
+        if (!agreementCheckBox.isChecked()) {
+            showToast("Подтвердите согласие с условиями");
+            return false;
+        }
+
+        if (selectedCardNumber == null) {
+            showToast("Выберите карту для оплаты");
+            return false;
+        }
+
+        if (total <= 0) {
+            showToast("Корзина пуста");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void updateTotalFromAdapter() {
+        total = 0;
+        for (Cart cart : orderAdapter.getCartItems()) {
+            total += cart.getPrice() * cart.getQuantity();
+        }
+        updateTotalAmount();
     }
 
     private void updatePayButtonState() {
-        boolean isEnabled = agreementCheckBox.isChecked() && selectedCardNumber != null;
+        boolean isEnabled = agreementCheckBox.isChecked() && selectedCardNumber != null && total > 0;
         payButton.setEnabled(isEnabled);
         payButton.setAlpha(isEnabled ? 1.0f : 0.5f);
     }
@@ -270,109 +461,51 @@ public class OrderActivity extends Fragment {
         updateTotalAmount();
     }
 
-    private void loadBankCards() {
-        String userId = getCurrentUserId();
-        if (userId != null) {
-            FirebaseFirestore.getInstance().collection("cards")
-                    .whereEqualTo("userId", userId)
-                    .get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        bankCards.clear();
-                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                            String cardNumber = document.getString("cardNumber");
-                            if (cardNumber != null) {
-                                bankCards.add(cardNumber);
-                            }
-                        }
-
-                        if (bankCards.isEmpty()) {
-                            selectedCardInfo.setText("Нет сохраненных карт");
-                            addCardButton.setVisibility(View.VISIBLE);
-                            bankCardSpinner.setVisibility(View.GONE);
-                            payButton.setEnabled(false);
-                            payButton.setAlpha(0.5f);
-                        } else {
-                            addCardButton.setVisibility(View.GONE);
-                            bankCardSpinner.setVisibility(View.VISIBLE);
-                            bankCardAdapter.notifyDataSetChanged();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Ошибка при загрузке карт", Toast.LENGTH_SHORT).show();
-                    });
-        }
-    }
-
-    private void loadCartItems() {
-        Query query = FirebaseFirestore.getInstance()
-                .collection("cart")
-                .whereEqualTo("userId", getCurrentUserId());
-
-        FirestoreRecyclerOptions<Cart> options = new FirestoreRecyclerOptions.Builder<Cart>()
-                .setQuery(query, Cart.class)
-                .build();
-
-        orderAdapter = new OrderAdapter(options);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(orderAdapter);
-
-        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
-            total = 0;
-            for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                Cart cart = document.toObject(Cart.class);
-                if (cart != null) {
-                    total += cart.getPrice() * cart.getQuantity();
-                }
-            }
-            updateTotalAmount();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Ошибка при загрузке корзины", Toast.LENGTH_SHORT).show();
-        });
-    }
-
     private void updateTotalAmount() {
         int finalTotal = total + (isProtectionEnabled ? protectionCost : 0);
         totalAmount.setText("Итого: " + finalTotal + " ₽");
     }
 
     private void processPayment() {
-        if (!agreementCheckBox.isChecked()) {
-            Toast.makeText(getContext(), "Подтвердите согласие с условиями", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (selectedCardNumber == null) {
-            Toast.makeText(getContext(), "Выберите карту для оплаты", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (total <= 0) {
-            Toast.makeText(getContext(), "Корзина пуста", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         String userId = getCurrentUserId();
         if (userId == null) {
-            Toast.makeText(getContext(), "Ошибка: пользователь не авторизован", Toast.LENGTH_SHORT).show();
+            showToast("Ошибка: пользователь не авторизован");
             return;
         }
 
-        List<Cart> cartItems = orderAdapter.getCartItems();
+        List<Cart> cartItemsSnapshot = new ArrayList<>(orderAdapter.getCartItems());
+        if (cartItemsSnapshot.isEmpty()) {
+            showToast("Корзина пуста");
+            return;
+        }
+
         int finalTotal = total + (isProtectionEnabled ? protectionCost : 0);
+        orderAdapter.stopListening();
+        showConfirmationDialog(userId, cartItemsSnapshot, finalTotal);
+    }
 
-        updateProductQuantities(cartItems, new ProductUpdateCallback() {
-            @Override
-            public void onAllProductsUpdated() {
-                createOrder(userId, cartItems, finalTotal, selectedCardNumber);
-            }
+    private void showConfirmationDialog(String userId, List<Cart> cartItems, int finalTotal) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Подтверждение заказа");
+        builder.setMessage("Адрес доставки: " + deliveryAddress + "\n\nСумма: " + finalTotal + " ₽");
 
-            @Override
-            public void onUpdateFailed(Exception e) {
-                Toast.makeText(getContext(),
-                        "Ошибка: " + e.getMessage(),
-                        Toast.LENGTH_LONG).show();
-            }
+        builder.setPositiveButton("Подтвердить", (dialog, which) -> {
+            updateProductQuantities(cartItems, new ProductUpdateCallback() {
+                @Override
+                public void onAllProductsUpdated() {
+                    createOrder(userId, cartItems, finalTotal, selectedCardNumber);
+                }
+
+                @Override
+                public void onUpdateFailed(Exception e) {
+                    showToast("Ошибка: " + e.getMessage());
+                    orderAdapter.startListening();
+                }
+            });
         });
+
+        builder.setNegativeButton("Отмена", (dialog, which) -> orderAdapter.startListening());
+        builder.show();
     }
 
     private void createOrder(String userId, List<Cart> cartItems, int totalAmount, String cardNumber) {
@@ -380,16 +513,31 @@ public class OrderActivity extends Fragment {
         orderData.put("userId", userId);
         orderData.put("products", cartItems);
         orderData.put("totalAmount", totalAmount);
+        orderData.put("paymentMethod", "Карта ****" + cardNumber.substring(cardNumber.length() - 4));
+        orderData.put("deliveryAddress", deliveryAddress);
+        orderData.put("protectionEnabled", isProtectionEnabled);
+
+        // Add random days (1 to 7) and status "создан"
+        Random random = new Random();
+        int days = random.nextInt(7) + 1; // Generates a number from 1 to 7
+        orderData.put("days", days);
+        orderData.put("status", "создан");
+
+        if (deliveryLocation != null) {
+            orderData.put("deliveryLocation", deliveryLocation);
+        }
 
         FirebaseFirestore.getInstance().collection("orders")
                 .add(orderData)
                 .addOnSuccessListener(documentReference -> {
                     clearCart(userId);
                     navigateToCatalog();
-                    Toast.makeText(getContext(), "Заказ успешно оформлен", Toast.LENGTH_SHORT).show();
+                    showToast("Заказ успешно оформлен");
+                    orderAdapter.startListening();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Ошибка при оформлении заказа", Toast.LENGTH_SHORT).show();
+                    showToast("Ошибка при оформлении заказа: " + e.getMessage());
+                    orderAdapter.startListening();
                 });
     }
 
@@ -462,9 +610,7 @@ public class OrderActivity extends Fragment {
                         document.getReference().delete();
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Ошибка при очистке корзины", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> showToast("Ошибка при очистке корзины"));
     }
 
     private void navigateToCatalog() {
@@ -482,6 +628,12 @@ public class OrderActivity extends Fragment {
 
     private String getCurrentUserId() {
         return userDocumentId;
+    }
+
+    private void showToast(String message) {
+        if (getContext() != null) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

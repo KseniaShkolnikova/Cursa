@@ -5,18 +5,18 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <Button
-        android:id="@+id/btnSelectOnMap"
+    <EditText
+        android:id="@+id/etAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Выбрать на карте"
-        android:layout_marginBottom="8dp"/>
+        android:hint="Введите адрес доставки"
+        android:layout_marginBottom="16dp"/>
 
     <Button
-        android:id="@+id/btnManualInput"
+        android:id="@+id/btnConfirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ввести вручную"
+        android:text="Подтвердить"
         android:layout_marginBottom="8dp"/>
 
     <Button

@@ -30,6 +30,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     private OnItemClickListener listener;
     private String userDocumentId;
     private String userRole;
+    private boolean isForOrder;
 
     public interface OnItemClickListener {
         void onItemClick(Product product);
@@ -39,73 +40,74 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         this.listener = listener;
         this.userDocumentId = userDocumentId;
         this.userRole = userRole;
+        this.isForOrder = false;
+    }
+
+    public ProductAdapter(String userDocumentId) {
+        this.userDocumentId = userDocumentId;
+        this.isForOrder = true;
     }
 
     @NonNull
     @Override
     public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Выбор макета в зависимости от роли пользователя
-        int layoutResId = userRole.equals("seller") ? R.layout.item_product_seller : R.layout.item_ptoduct;
+        int layoutResId = isForOrder ? R.layout.item_ptoduct :
+                userRole != null && userRole.equals("seller") ? R.layout.item_product_seller : R.layout.item_ptoduct;
         View view = LayoutInflater.from(parent.getContext()).inflate(layoutResId, parent, false);
-        return new ProductViewHolder(view);
+
+        // Set fixed width for order items
+        if (isForOrder) {
+            int fixedWidthPx = (int) (200 * parent.getContext().getResources().getDisplayMetrics().density);
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
+                    fixedWidthPx,
+                    RecyclerView.LayoutParams.WRAP_CONTENT
+            );
+            view.setLayoutParams(params);
+        }
+
+        return new ProductViewHolder(view, isForOrder);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         Product product = products.get(position);
-        holder.productName.setText(product.getName());
-        holder.productPrice.setText(String.valueOf(product.getPrice()));
+        holder.bind(product);
 
-        // Загрузка изображения товара
-        if (product.getImageBase64() != null && !product.getImageBase64().isEmpty()) {
-            Bitmap bitmap = base64ToBitmap(product.getImageBase64());
-            if (bitmap != null) {
-                holder.productImage.setImageBitmap(bitmap);
-            } else {
-                holder.productImage.setImageResource(R.drawable.no_photo);
-            }
-        } else {
-            holder.productImage.setImageResource(R.drawable.no_photo);
+        if (holder.isForOrderMode) {
+            // No additional setup needed for order mode
+            return;
         }
 
-        // Обработка кнопки "Добавить в корзину" в зависимости от количества
+        // Setup for regular product view
         if (holder.addToCartButton != null) {
             if (product.getQuantity() <= 0) {
-                // Если товара нет в наличии
                 holder.addToCartButton.setEnabled(false);
                 holder.addToCartButton.setBackgroundColor(
                         holder.itemView.getContext().getResources().getColor(R.color.light_gray));
                 holder.addToCartButton.setText("Нет в наличии");
             } else {
-                // Если товар есть в наличии
                 holder.addToCartButton.setEnabled(true);
                 holder.addToCartButton.setBackgroundColor(
                         holder.itemView.getContext().getResources().getColor(R.color.highlight_color));
                 holder.addToCartButton.setText("В корзину");
-                holder.addToCartButton.setOnClickListener(v -> {
-                    addToCart(product, holder);
-                });
+                holder.addToCartButton.setOnClickListener(v -> addToCart(product, holder));
             }
         }
 
-        // Остальной код метода остается без изменений
+        // Set item click listener
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onItemClick(product);
             }
         });
 
-        if (userRole.equals("seller")) {
+        // Setup for seller view
+        if (userRole != null && userRole.equals("seller")) {
             if (holder.editButton != null) {
-                holder.editButton.setOnClickListener(v -> {
-                    editProduct(product, holder);
-                });
+                holder.editButton.setOnClickListener(v -> editProduct(product, holder));
             }
-
             if (holder.deleteButton != null) {
-                holder.deleteButton.setOnClickListener(v -> {
-                    deleteProduct(product, holder);
-                });
+                holder.deleteButton.setOnClickListener(v -> deleteProduct(product, holder));
             }
         }
     }
@@ -115,31 +117,27 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         return products.size();
     }
 
-    // Метод для обновления данных в адаптере
     public void updateData(List<Product> newProducts, Map<String, Integer> productPopularityMap) {
         this.products.clear();
         this.products.addAll(newProducts);
 
-        // Сортировка по популярности (если данные о популярности переданы)
         if (productPopularityMap != null) {
             products.sort((p1, p2) -> {
                 int popularity1 = productPopularityMap.getOrDefault(p1.getName(), 0);
                 int popularity2 = productPopularityMap.getOrDefault(p2.getName(), 0);
-                return Integer.compare(popularity2, popularity1); // Сортировка по убыванию
+                return Integer.compare(popularity2, popularity1); // Descending order
             });
         }
 
-        notifyDataSetChanged(); // Уведомляем адаптер об изменении данных
+        notifyDataSetChanged();
     }
 
-    // Метод для добавления товара в корзину
     private void addToCart(Product product, ProductViewHolder holder) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String productId = product.getId();
-        String cartItemId = userDocumentId + "_" + productId; // Уникальный ID для корзины
+        String cartItemId = userDocumentId + "_" + productId;
 
-        db.collection("products")
-                .document(productId)
+        db.collection("products").document(productId)
                 .get()
                 .addOnSuccessListener(productDocument -> {
                     if (productDocument.exists()) {
@@ -149,35 +147,28 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                             holder.addToCartButton.setEnabled(false);
                             holder.addToCartButton.setBackgroundColor(
                                     holder.itemView.getContext().getResources().getColor(R.color.light_gray));
-                            Toast.makeText(holder.itemView.getContext(),
-                                    "Товар отсутствует на складе", Toast.LENGTH_SHORT).show();
+                            showToast(holder, "Товар отсутствует на складе", false);
                             return;
                         }
 
-                        // Проверяем, есть ли уже товар в корзине
-                        db.collection("cart")
-                                .document(cartItemId)
+                        db.collection("cart").document(cartItemId)
                                 .get()
                                 .addOnSuccessListener(cartDocument -> {
                                     if (cartDocument.exists()) {
-                                        // Увеличиваем количество
                                         Cart existingCart = cartDocument.toObject(Cart.class);
-                                        int newQuantity = existingCart.getQuantity() + 1;
-
-                                        if (newQuantity <= availableQuantity) {
-                                            db.collection("cart")
-                                                    .document(cartItemId)
-                                                    .update("quantity", newQuantity)
-                                                    .addOnSuccessListener(aVoid -> {
-                                                        Toast.makeText(holder.itemView.getContext(),
-                                                                "Количество увеличено", Toast.LENGTH_SHORT).show();
-                                                    });
-                                        } else {
-                                            Toast.makeText(holder.itemView.getContext(),
-                                                    "Недостаточно товара на складе", Toast.LENGTH_SHORT).show();
+                                        if (existingCart != null) {
+                                            int newQuantity = existingCart.getQuantity() + 1;
+                                            if (newQuantity <= availableQuantity) {
+                                                db.collection("cart").document(cartItemId)
+                                                        .update("quantity", newQuantity)
+                                                        .addOnSuccessListener(aVoid -> {
+                                                            showToast(holder, "Количество увеличено", true);
+                                                        });
+                                            } else {
+                                                showToast(holder, "Недостаточно товара на складе", false);
+                                            }
                                         }
                                     } else {
-                                        // Добавляем новый товар в корзину
                                         Cart newCartItem = new Cart(
                                                 productId,
                                                 product.getName(),
@@ -187,96 +178,102 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                                                 userDocumentId
                                         );
 
-                                        db.collection("cart")
-                                                .document(cartItemId)
+                                        db.collection("cart").document(cartItemId)
                                                 .set(newCartItem)
                                                 .addOnSuccessListener(aVoid -> {
-                                                    Toast.makeText(holder.itemView.getContext(),
-                                                            "Товар добавлен в корзину", Toast.LENGTH_SHORT).show();
+                                                    showToast(holder, "Товар добавлен в корзину", true);
                                                 });
                                     }
                                 });
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(holder.itemView.getContext(),
-                            "Ошибка при проверке товара", Toast.LENGTH_SHORT).show();
+                    showToast(holder, "Ошибка при проверке товара", false);
                 });
     }
 
-    // Вспомогательные методы для отображения уведомлений
-    private void showSuccessToast(ProductViewHolder holder, String message) {
-        Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
-    }
-
-    private void showErrorToast(ProductViewHolder holder, String message) {
-        Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
-    }
-
-    // Метод для редактирования товара
     private void editProduct(Product product, ProductViewHolder holder) {
-        // Открываем фрагмент редактирования товара
-        ProductDetailSeller productDetailSeller = new ProductDetailSeller();
-        Bundle bundle = new Bundle();
-        bundle.putString("productId", product.getId());
-        bundle.putString("userDocumentId", userDocumentId);
-        bundle.putString("userRole", userRole);
-        productDetailSeller.setArguments(bundle);
+        ProductDetailSeller fragment = new ProductDetailSeller();
+        Bundle args = new Bundle();
+        args.putString("productId", product.getId());
+        args.putString("userDocumentId", userDocumentId);
+        args.putString("userRole", userRole);
+        fragment.setArguments(args);
 
-        FragmentManager fragmentManager = ((AppCompatActivity) holder.itemView.getContext()).getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.frameLayout, productDetailSeller)
+        FragmentManager fm = ((AppCompatActivity) holder.itemView.getContext()).getSupportFragmentManager();
+        fm.beginTransaction()
+                .replace(R.id.frameLayout, fragment)
                 .addToBackStack(null)
                 .commit();
     }
 
-    // Метод для удаления товара
     private void deleteProduct(Product product, ProductViewHolder holder) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("products")
-                .document(product.getId())
+        db.collection("products").document(product.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(holder.itemView.getContext(), "Товар удален", Toast.LENGTH_SHORT).show();
-                    // Удаляем товар из списка и обновляем адаптер
                     products.remove(product);
                     notifyDataSetChanged();
+                    showToast(holder, "Товар удален", true);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(holder.itemView.getContext(), "Ошибка при удалении товара", Toast.LENGTH_SHORT).show();
-                    Log.e("ProductAdapter", "Ошибка при удалении товара", e);
+                    Log.e("ProductAdapter", "Ошибка удаления", e);
+                    showToast(holder, "Ошибка при удалении", false);
                 });
     }
 
-    // Метод для преобразования Base64 в Bitmap
-    private Bitmap base64ToBitmap(String base64String) {
-        try {
-            byte[] decodedBytes = Base64.decode(base64String, Base64.DEFAULT);
-            return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    private void showToast(ProductViewHolder holder, String message, boolean isSuccess) {
+        Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    // ViewHolder для товара
     static class ProductViewHolder extends RecyclerView.ViewHolder {
         TextView productName, productPrice;
         ImageView productImage;
-        Button editButton, deleteButton, addToCartButton;
+        Button addToCartButton, editButton, deleteButton;
+        boolean isForOrderMode;
 
-        public ProductViewHolder(@NonNull View itemView) {
+        public ProductViewHolder(@NonNull View itemView, boolean isForOrder) {
             super(itemView);
+            this.isForOrderMode = isForOrder;
+
             productName = itemView.findViewById(R.id.productName);
             productPrice = itemView.findViewById(R.id.productPrice);
             productImage = itemView.findViewById(R.id.productImage);
 
+            if (!isForOrderMode) {
+                addToCartButton = itemView.findViewById(R.id.addToCartButton);
+                editButton = itemView.findViewById(R.id.editProductButton);
+            }
+        }
 
-            addToCartButton = itemView.findViewById(R.id.addToCartButton);
+        public void bind(Product product) {
+            if (productName != null) {
+                productName.setText(product.getName() != null ? product.getName() : "");
+            }
 
-            // Логирование для отладки
-            Log.d("ProductViewHolder", "editButton: " + editButton);
-            Log.d("ProductViewHolder", "deleteButton: " + deleteButton);
-            Log.d("ProductViewHolder", "addToCartButton: " + addToCartButton);
+            if (productPrice != null) {
+                if (isForOrderMode) {
+                    productPrice.setText(String.format("%d ₽ × %d",
+                            product.getPrice(),
+                            product.getQuantity()));
+                } else {
+                    productPrice.setText(String.format("%d ₽", product.getPrice()));
+                }
+            }
+
+            if (productImage != null) {
+                if (product.getImageBase64() != null && !product.getImageBase64().isEmpty()) {
+                    try {
+                        byte[] decodedBytes = Base64.decode(product.getImageBase64(), Base64.DEFAULT);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                        productImage.setImageBitmap(bitmap);
+                    } catch (IllegalArgumentException e) {
+                        productImage.setImageResource(R.drawable.no_photo);
+                    }
+                } else {
+                    productImage.setImageResource(R.drawable.no_photo);
+                }
+            }
         }
     }
 }
