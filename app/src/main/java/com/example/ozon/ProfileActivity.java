@@ -1,7 +1,10 @@
 package com.example.ozon;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,12 +23,14 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.WorkManager;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +39,8 @@ public class ProfileActivity extends Fragment {
 
     private static final String STATUS_CREATED = "создан";
     private static final String STATUS_DELIVERED = "доставлен";
+    SharedPreferences sharedPrefs;
+    Context context;
 
     private TextView tvUserName, tvUserLogin, tvUserPassword;
     private FirebaseFirestore db;
@@ -45,7 +52,6 @@ public class ProfileActivity extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.profile_activity, container, false);
-
         db = FirebaseFirestore.getInstance();
 
         Bundle bundle = getArguments();
@@ -64,6 +70,12 @@ public class ProfileActivity extends Fragment {
         return view;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        loadUserOrders(); // Обновляем заказы при входе в профиль
+    }
+
     private void initializeViews(View view) {
         tvUserName = view.findViewById(R.id.tvUserName);
         tvUserLogin = view.findViewById(R.id.tvUserLogin);
@@ -71,6 +83,21 @@ public class ProfileActivity extends Fragment {
         completedOrdersContainer = view.findViewById(R.id.completedOrdersContainer);
         inDeliveryOrdersContainer = view.findViewById(R.id.inDeliveryOrdersContainer);
         cardsContainer = view.findViewById(R.id.cardsContainer);
+        Button testButton = view.findViewById(R.id.testButton);
+        testButton.setOnClickListener(v -> testOrderUpdate());
+    }
+
+    private void testOrderUpdate() {
+        Map<String, Object> testOrder = new HashMap<>();
+        testOrder.put("userId", userDocumentId);
+        testOrder.put("status", "создан");
+        testOrder.put("orderDate", new Timestamp(new Date()));
+        testOrder.put("days", 0);
+
+        db.collection("orders").add(testOrder)
+                .addOnSuccessListener(docRef -> {
+                    Toast.makeText(requireContext(), "Тестовый заказ создан: " + docRef.getId(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void setupMenuButton(View view) {
@@ -103,14 +130,12 @@ public class ProfileActivity extends Fragment {
     private void loadUserOrders() {
         if (userDocumentId == null) return;
 
-        // Заказы в доставке
         db.collection("orders")
                 .whereEqualTo("userId", userDocumentId)
                 .whereEqualTo("status", STATUS_CREATED)
                 .get()
                 .addOnCompleteListener(this::processInDeliveryOrders);
 
-        // Завершенные заказы
         db.collection("orders")
                 .whereEqualTo("userId", userDocumentId)
                 .whereEqualTo("status", STATUS_DELIVERED)
@@ -118,7 +143,7 @@ public class ProfileActivity extends Fragment {
                 .addOnCompleteListener(this::processCompletedOrders);
     }
 
-    private void processInDeliveryOrders(com.google.android.gms.tasks.Task<QuerySnapshot> task) {
+    private void processInDeliveryOrders(com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> task) {
         if (task.isSuccessful()) {
             inDeliveryOrdersContainer.removeAllViews();
             if (task.getResult().isEmpty()) {
@@ -131,7 +156,7 @@ public class ProfileActivity extends Fragment {
         }
     }
 
-    private void processCompletedOrders(com.google.android.gms.tasks.Task<QuerySnapshot> task) {
+    private void processCompletedOrders(com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> task) {
         if (task.isSuccessful()) {
             completedOrdersContainer.removeAllViews();
             if (task.getResult().isEmpty()) {
@@ -155,7 +180,6 @@ public class ProfileActivity extends Fragment {
                 document.getString("deliveryAddress") : "Адрес не указан";
         Long totalAmount = document.getLong("totalAmount") != null ?
                 document.getLong("totalAmount") : 0L;
-        Long days = document.getLong("days");
         String status = document.getString("status") != null ?
                 document.getString("status") : "Неизвестный статус";
 
@@ -163,8 +187,11 @@ public class ProfileActivity extends Fragment {
                 .append("Адрес: ").append(deliveryAddress).append("\n")
                 .append("Сумма: ").append(totalAmount).append(" ₽");
 
-        if (showDeliveryDays && days != null) {
-            details.append("\nДней до доставки: ").append(days);
+        if (showDeliveryDays) {
+            Long days = document.getLong("days");
+            if (days != null) {
+                details.append("\nДней до доставки: ").append(days);
+            }
         }
 
         tvOrderStatus.setText(status);
@@ -219,7 +246,8 @@ public class ProfileActivity extends Fragment {
         popupMenu.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.action_logout) {
-                logoutUser();
+                logoutUser( );
+
                 return true;
             } else if (id == R.id.action_register_seller) {
                 checkIfSellerExistsBeforeRegistration();
@@ -241,10 +269,27 @@ public class ProfileActivity extends Fragment {
     }
 
     private void logoutUser() {
-        Toast.makeText(requireContext(), "Выход из аккаунта", Toast.LENGTH_SHORT).show();
+        // 1. Получаем SharedPreferences
+        SharedPreferences sharedPrefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+
+        // 2. Очищаем сохраненные данные авторизации
+        sharedPrefs.edit()
+                .clear()
+                .apply();
+
+        // 3. Останавливаем все фоновые задачи WorkManager
+        WorkManager.getInstance(requireContext()).cancelAllWork();
+
+        // 4. Перенаправляем на MainActivity с очисткой стека активностей
         Intent intent = new Intent(requireContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+
+        // 5. Закрываем текущую активность
         requireActivity().finish();
+
+        // 6. Показываем уведомление пользователю
+        Toast.makeText(requireContext(), "Вы успешно вышли из системы", Toast.LENGTH_SHORT).show();
     }
 
     private void checkIfSellerExistsBeforeRegistration() {
@@ -482,7 +527,6 @@ public class ProfileActivity extends Fragment {
 
     private void sendPasswordRecoveryEmail(String email, String code) {
         // Реализация отправки email с кодом
-        // Можно использовать JavaMail API или Firebase Auth sendPasswordResetEmail
     }
 
     private void showChangePasswordDialog() {

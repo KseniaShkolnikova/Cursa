@@ -1,10 +1,14 @@
-
 package com.example.ozon;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.SharedPreferences;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -21,6 +25,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -41,7 +47,7 @@ import java.util.Set;
 public class CatalogActivity extends Fragment {
 
     private static final String TAG = "CatalogActivity";
-    private static final String PREF_MAX_PRICE = "max_price"; // This will no longer be used to persist across sessions.
+    private static final String PREF_MAX_PRICE = "max_price";
     private RecyclerView recyclerView;
     private ProductAdapter productAdapter;
     private FirebaseFirestore db;
@@ -49,13 +55,12 @@ public class CatalogActivity extends Fragment {
     private ImageButton searchButton;
     private Button filterButton;
     private String selectedCategory = "";
-    private int maxPrice = 1000000; // Reasonable default, but should be overridden
-    private int currentPrice; // No default here - load from SharedPreferences or DB
+    private int maxPrice = 1000000;
+    private int currentPrice;
     private boolean filterByPopularity = false;
     private String userDocumentId;
     private String userRole;
     private TextView emptyView;
-    private SharedPreferences sharedPreferences;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -66,8 +71,8 @@ public class CatalogActivity extends Fragment {
         searchButton = view.findViewById(R.id.searchButton);
         filterButton = view.findViewById(R.id.filterButton);
         emptyView = view.findViewById(R.id.emptyView);
+        decreaseOrderDays("7sEQnIlfOhlJFX1V0ndg");
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
 
         Bundle bundle = getArguments();
         if (bundle != null) {
@@ -82,10 +87,9 @@ public class CatalogActivity extends Fragment {
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         recyclerView.setAdapter(productAdapter);
 
-        // Load the maximum price from the database and update UI after that load is complete.
         loadMaxPriceFromDB(() -> {
-            currentPrice = maxPrice; // Initialize currentPrice to maxPrice *every* time.
-            setupRecyclerView("", selectedCategory, 0, currentPrice, filterByPopularity, userRole); // Use the loaded currentPrice here!
+            currentPrice = maxPrice;
+            setupRecyclerView("", selectedCategory, 0, currentPrice, filterByPopularity, userRole);
         });
 
         searchBar.addTextChangedListener(new TextWatcher() {
@@ -115,6 +119,38 @@ public class CatalogActivity extends Fragment {
         return view;
     }
 
+    private void decreaseOrderDays(String orderId) {
+        db.collection("orders").document(orderId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Long currentDays = documentSnapshot.getLong("days");
+                        if (currentDays != null && currentDays > 0) {
+                            long newDays = currentDays - 1;
+                            db.collection("orders").document(orderId)
+                                    .update("days", newDays)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d(TAG, "Days decreased for order " + orderId + ". New value: " + newDays);
+                                        if (newDays == 0) {
+                                            db.collection("orders").document(orderId)
+                                                    .update("status", "доставлен")
+                                                    .addOnSuccessListener(aVoid2 -> {
+                                                        Log.d(TAG, "Order " + orderId + " marked as delivered");
+                                                    })
+                                                    .addOnFailureListener(e -> Log.e(TAG, "Error updating status", e));
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> Log.e(TAG, "Error updating days", e));
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error getting order document", e));
+    }
+
+
+
+
+
     private void loadMaxPriceFromDB(Runnable onComplete) {
         db.collection("products").orderBy("price", Query.Direction.DESCENDING).limit(1)
                 .get()
@@ -123,15 +159,14 @@ public class CatalogActivity extends Fragment {
                         DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
                         maxPrice = document.getLong("price").intValue();
                         Log.d(TAG, "Max price loaded from DB: " + maxPrice);
-
                     } else {
                         Log.w(TAG, "No products found to determine max price. Using default.");
                     }
-                    onComplete.run(); // Execute the callback after the DB fetch is complete.
+                    onComplete.run();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Failed to load max price from DB", e);
-                    onComplete.run(); // Ensure callback is always executed, even on failure.
+                    onComplete.run();
                 });
     }
 
@@ -148,9 +183,8 @@ public class CatalogActivity extends Fragment {
         Button applyFiltersButton = dialogView.findViewById(R.id.applyFiltersButton);
         Button resetFiltersButton = dialogView.findViewById(R.id.resetFiltersButton);
 
-        // Load maxPrice from DB *again* just before showing the dialog to ensure most up-to-date value.
         loadMaxPriceFromDB(() -> {
-            dialogPriceSeekBar.setMax(maxPrice);  //This is necessary to run, so the seekbar doesn't get confused
+            dialogPriceSeekBar.setMax(maxPrice);
             dialogPriceSeekBar.setProgress(currentPrice);
             dialogPriceRangeText.setText(currentPrice + " ₽");
             popularityCheckBox.setChecked(filterByPopularity);
@@ -159,17 +193,15 @@ public class CatalogActivity extends Fragment {
             dialogPriceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    currentPrice = progress; // Update currentPrice immediately
-                    dialogPriceRangeText.setText(currentPrice + " ₽"); // Update the UI too!
+                    currentPrice = progress;
+                    dialogPriceRangeText.setText(currentPrice + " ₽");
                 }
 
                 @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                }
+                public void onStartTrackingTouch(SeekBar seekBar) {}
 
                 @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                }
+                public void onStopTrackingTouch(SeekBar seekBar) {}
             });
 
             applyFiltersButton.setOnClickListener(v -> {
@@ -182,13 +214,11 @@ public class CatalogActivity extends Fragment {
             resetFiltersButton.setOnClickListener(v -> {
                 selectedCategory = "";
                 filterByPopularity = false;
-
-                // Reset to the *database's* maximum price!  Reload it again to be sure.
                 loadMaxPriceFromDB(() -> {
                     dialogPriceSeekBar.setMax(maxPrice);
-                    dialogPriceSeekBar.setProgress(maxPrice);  // Reset slider position
+                    dialogPriceSeekBar.setProgress(maxPrice);
                     dialogPriceRangeText.setText(maxPrice + " ₽");
-                    currentPrice = maxPrice; // Reset currentPrice
+                    currentPrice = maxPrice;
                     setupRecyclerView("", selectedCategory, 0, currentPrice, filterByPopularity, userRole);
                     dialog.dismiss();
                 });
@@ -206,14 +236,12 @@ public class CatalogActivity extends Fragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     Set<String> uniqueCategories = new HashSet<>();
-
                     for (DocumentSnapshot document : queryDocumentSnapshots) {
                         String productType = document.getString("productType");
                         if (productType != null && !productType.isEmpty()) {
                             uniqueCategories.add(productType);
                         }
                     }
-
                     categories.addAll(uniqueCategories);
 
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, categories);
@@ -252,7 +280,7 @@ public class CatalogActivity extends Fragment {
             List<Product> products = new ArrayList<>();
             for (DocumentSnapshot document : queryDocumentSnapshots) {
                 Product product = document.toObject(Product.class);
-                if (product != null) { // Убрана проверка quantity > 0
+                if (product != null) {
                     product.setId(document.getId());
                     products.add(product);
                 }
@@ -286,7 +314,6 @@ public class CatalogActivity extends Fragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     Map<String, Integer> productPopularityMap = new HashMap<>();
-
                     for (DocumentSnapshot orderDocument : queryDocumentSnapshots) {
                         List<Map<String, Object>> products = (List<Map<String, Object>>) orderDocument.get("products");
                         if (products != null) {

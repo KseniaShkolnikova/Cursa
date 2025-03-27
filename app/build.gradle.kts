@@ -47,6 +47,8 @@ dependencies {
 
     // Firebase компоненты
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("androidx.core:core:1.12.0")
+
     implementation("com.github.bumptech.glide:glide:4.12.0")
 
     implementation("com.google.firebase:firebase-storage-ktx")
@@ -58,6 +60,13 @@ dependencies {
     // Email
     implementation("com.sun.mail:android-mail:1.6.7")
     implementation("com.sun.mail:android-activation:1.6.7")
+    implementation("com.google.firebase:firebase-messaging:23.4.1")
+    implementation ("androidx.work:work-runtime:2.8.1")
+    implementation ("androidx.core:core:1.10.1")
+    implementation ("androidx.appcompat:appcompat:1.6.1")
+    // Если вы все еще используете Firebase для Firestore
+    implementation ("com.google.firebase:firebase-firestore:24.10.0")
+
 
     // Изображения
     implementation("com.squareup.picasso:picasso:2.8")

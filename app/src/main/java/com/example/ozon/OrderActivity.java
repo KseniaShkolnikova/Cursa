@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class OrderActivity extends Fragment {
 
@@ -517,9 +518,12 @@ public class OrderActivity extends Fragment {
         orderData.put("deliveryAddress", deliveryAddress);
         orderData.put("protectionEnabled", isProtectionEnabled);
 
-        // Add random days (1 to 7) and status "создан"
+        // Добавляем текущую дату и время заказа
+        orderData.put("orderDate", com.google.firebase.Timestamp.now());
+
+        // Добавляем случайное количество дней доставки (1-7) и статус "создан"
         Random random = new Random();
-        int days = random.nextInt(7) + 1; // Generates a number from 1 to 7
+        int days = ThreadLocalRandom.current().nextInt(1, 7);
         orderData.put("days", days);
         orderData.put("status", "создан");
 
