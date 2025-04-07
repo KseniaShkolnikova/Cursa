@@ -1,5 +1,4 @@
 package com.example.ozon;
-
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,23 +15,18 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 public class CreateProductActivity extends Fragment {
-
     private static final int PICK_IMAGE_REQUEST = 1;
     private EditText productNameInput, productPriceInput, productDescriptionInput, productQuantityInput;
     private ImageView productImagePreview;
@@ -42,7 +36,6 @@ public class CreateProductActivity extends Fragment {
     private Spinner productTypeInput;
     private ArrayAdapter<String> spinnerAdapter;
     private List<String> productTypes = new ArrayList<>();
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -52,27 +45,20 @@ public class CreateProductActivity extends Fragment {
             userDocumentId = bundle.getString("USER_DOCUMENT_ID");
         }
         db = FirebaseFirestore.getInstance();
-
         productNameInput = view.findViewById(R.id.productNameInput);
         productPriceInput = view.findViewById(R.id.productPriceInput);
-        productQuantityInput = view.findViewById(R.id.productQuantityInput); // Инициализация поля для количества
+        productQuantityInput = view.findViewById(R.id.productQuantityInput);
         productImagePreview = view.findViewById(R.id.productImagePreview);
         productDescriptionInput = view.findViewById(R.id.productDescriptionInput);
         productTypeInput = view.findViewById(R.id.productTypeSpinner);
-
         Button selectImageButton = view.findViewById(R.id.selectImageButton);
         Button saveProductButton = view.findViewById(R.id.saveProductButton);
         selectImageButton.setOnClickListener(v -> openImagePicker());
         saveProductButton.setOnClickListener(v -> saveProduct());
-
-        // Инициализация адаптера для Spinner
         spinnerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, productTypes);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         productTypeInput.setAdapter(spinnerAdapter);
-
-        // Загрузка типов товаров из Firestore
         loadProductTypes();
-
         return view;
     }
 
@@ -94,12 +80,10 @@ public class CreateProductActivity extends Fragment {
                     }
                 });
     }
-
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -108,41 +92,72 @@ public class CreateProductActivity extends Fragment {
             productImagePreview.setImageURI(imageUri);
         }
     }
-
     private void saveProduct() {
-        String name = productNameInput.getText().toString();
-        String price = productPriceInput.getText().toString();
-        String quantity = productQuantityInput.getText().toString(); // Получаем количество товара
-        String type = productTypeInput.getSelectedItem().toString();
-        String description = productDescriptionInput.getText().toString();
+        String name = productNameInput.getText().toString().trim();
+        String price = productPriceInput.getText().toString().trim();
+        String quantity = productQuantityInput.getText().toString().trim();
+        String type = productTypeInput.getSelectedItem() != null ? productTypeInput.getSelectedItem().toString() : "";
+        String description = productDescriptionInput.getText().toString().trim();
         String imageBase64;
-
-        // Проверка на заполнение обязательных полей
-        if (name.isEmpty() || price.isEmpty() || quantity.isEmpty() || type.isEmpty() || description.isEmpty()) {
-            Toast.makeText(getContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
+        if (!validateProductInput(name, price, quantity, type, description)) {
             return;
         }
-
         if (imageUri == null) {
-            // Преобразуем стандартное изображение в Base64
             imageBase64 = drawableToBase64(R.drawable.no_photo);
         } else {
-            // Преобразуем выбранное изображение в Base64
             imageBase64 = uriToBase64(imageUri);
         }
-
-        // Проверка на ошибку преобразования изображения
         if (imageBase64 == null) {
             Toast.makeText(getContext(), "Ошибка загрузки изображения", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // Сохраняем продукт в Firestore
         int priceInt = Integer.parseInt(price);
         int quantityInt = Integer.parseInt(quantity);
         saveProductToFirestore(name, priceInt, type, imageBase64, description, quantityInt);
     }
-
+    private boolean validateProductInput(String name, String price, String quantity, String type, String description) {
+        if (name.length() < 4) {
+            Toast.makeText(getContext(), "Название должно содержать минимум 4 символа", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (price.isEmpty()) {
+            Toast.makeText(getContext(), "Введите цену", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        try {
+            int priceInt = Integer.parseInt(price);
+            if (priceInt < 1) {
+                Toast.makeText(getContext(), "Цена должна быть не менее 1 рубля", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Цена должна быть числом", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (quantity.isEmpty()) {
+            Toast.makeText(getContext(), "Введите количество", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        try {
+            int quantityInt = Integer.parseInt(quantity);
+            if (quantityInt < 1) {
+                Toast.makeText(getContext(), "Количество должно быть не менее 1 штуки", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Количество должно быть числом", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (type.isEmpty() || productTypes.isEmpty()) {
+            Toast.makeText(getContext(), "Выберите тип товара", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (description.length() < 10) {
+            Toast.makeText(getContext(), "Описание должно содержать минимум 10 символов", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
     private String drawableToBase64(int drawableResId) {
         try {
             Bitmap bitmap = BitmapFactory.decodeResource(getResources(), drawableResId);
@@ -155,7 +170,6 @@ public class CreateProductActivity extends Fragment {
             return null;
         }
     }
-
     private String uriToBase64(Uri uri) {
         try {
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), uri);
@@ -168,7 +182,6 @@ public class CreateProductActivity extends Fragment {
             return null;
         }
     }
-
     private void saveProductToFirestore(String name, int price, String type, String imageBase64, String description, int quantity) {
         Map<String, Object> product = new HashMap<>();
         product.put("name", name);
@@ -177,14 +190,21 @@ public class CreateProductActivity extends Fragment {
         product.put("imageBase64", imageBase64);
         product.put("description", description);
         product.put("sellerId", userDocumentId);
-        product.put("quantity", quantity); // Добавляем количество товара
+        product.put("quantity", quantity);
 
         db.collection("products").add(product)
                 .addOnSuccessListener(documentReference -> {
-                    String productId = documentReference.getId();
-                    Toast.makeText(getContext(), "Продукт добавлен с ID: " + productId, Toast.LENGTH_SHORT).show();
-
+                    clearInputFields();
                 })
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Ошибка при добавлении продукта", Toast.LENGTH_SHORT).show());
+    }
+    private void clearInputFields() {
+        productNameInput.setText("");
+        productPriceInput.setText("");
+        productQuantityInput.setText("");
+        productDescriptionInput.setText("");
+        productTypeInput.setSelection(0);
+        productImagePreview.setImageResource(R.drawable.no_photo);
+        imageUri = null;
     }
 }

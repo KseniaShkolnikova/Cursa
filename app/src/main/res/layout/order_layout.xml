@@ -1,8 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="@drawable/bg_rounded_dialog">
 
     <!-- Список товаров -->
     <androidx.recyclerview.widget.RecyclerView
@@ -12,85 +15,301 @@
         android:layout_weight="1"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Выбор банковской карты -->
-    <TextView
+    <!-- Разделитель -->
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Выберите карту для оплаты"
-        android:textColor="#001A34"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
-
-    <Spinner
-        android:id="@+id/bankCardSpinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
         android:layout_marginBottom="16dp"/>
-    <Button
+
+    <!-- Информация об адресе доставки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_address"
+                android:tint="#EC407A"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/deliveryAddressText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Адрес доставки не выбран"
+                android:textColor="#001A34"
+                android:textSize="16sp"
+                android:fontFamily="@font/montserratregular"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/updateAddressButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Изменить"
+                android:textColor="#005BFF"
+                android:backgroundTint="#E6F0FF"
+                android:textSize="14sp"
+                android:fontFamily="@font/montserratregular"
+                app:cornerRadius="8dp"
+                app:iconTint="#005BFF"
+                app:iconGravity="start"
+                app:iconPadding="4dp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Разделитель -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Выбор банковской карты -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/card"
+            android:tint="#EC407A"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Выберите карту для оплаты"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratsemibold"/>
+    </LinearLayout>
+
+    <!-- Стилизованный Spinner -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/bankCardLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        style="@style/CustomTextInputLayout">
+
+        <Spinner
+            android:id="@+id/bankCardSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Выберите карту"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:textColor="#001A34"
+            android:fontFamily="@font/montserratregular"
+            android:contentDescription="Выпадающий список для выбора карты"
+            android:popupBackground="#FFFFFF"
+            android:spinnerMode="dropdown"
+            android:background="@null"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Кнопка "Привязать карту" -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/addCardButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:text="Привязать карту"
         android:textColor="#005BFF"
-        android:backgroundTint="#FFFFFF"
+        android:backgroundTint="#E6F0FF"
         android:textSize="16sp"
-        android:fontFamily="@font/ramona_bold"
+        android:fontFamily="@font/montserratregular"
+        app:cornerRadius="8dp"
         android:visibility="gone"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        app:icon="@drawable/ic_add_product"
+        app:iconTint="#005BFF"
+        app:iconGravity="start"
+        app:iconPadding="8dp"
+        android:contentDescription="Привязать карту"/>
+
+    <!-- Разделитель -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginBottom="16dp"/>
 
     <!-- Отображение выбранной карты -->
-    <TextView
-        android:id="@+id/selectedCardInfo"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Выбранная карта: -"
-        android:textColor="#001A34"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
 
-    <!-- Кнопка для подключения защиты -->
-    <Button
-        android:id="@+id/protectionButton"
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/card"
+            android:tint="#EC407A"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/selectedCardInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Выбранная карта: -"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"/>
+    </LinearLayout>
+
+    <!-- Тумблер для подключения защиты -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Подключить защиту имущества"
-        android:backgroundTint="#005BFF"
-        android:textColor="#FFFFFF"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <Switch
+            android:id="@+id/protectionSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            app:thumbTint="#FFFFFF"
+            app:trackTint="@color/switch_track_selector"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_shield"
+                android:tint="#EC407A"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Подключить защиту имущества"
+                android:textColor="#001A34"
+                android:textSize="16sp"
+                android:fontFamily="@font/montserratregular"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Разделитель -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Общая стоимость -->
-    <TextView
-        android:id="@+id/totalAmount"
-        android:layout_width="wrap_content"
+    <!-- Общая стоимость с выделением -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Итого: 0 ₽"
-        android:textColor="#001A34"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:fontFamily="@font/ramona_bold"
-        android:layout_marginBottom="16dp"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#E6F0FF"
+        android:padding="8dp"
+        android:layout_marginBottom="16dp"
+        app:cornerRadius="8dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_price"
+            android:tint="#EC407A"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/totalAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Итого: 0 ₽"
+            android:textColor="#001A34"
+            android:textSize="20sp"
+            android:fontFamily="@font/montserratsemibold"
+            android:textStyle="bold"/>
+    </LinearLayout>
 
     <!-- Чекбокс согласия -->
-    <CheckBox
-        android:id="@+id/agreementCheckBox"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Согласен с условиями и Правилами пользования торговой площадки и правилами Возврата"
-        android:textColor="#001A34"
-        android:textSize="14sp"
-        android:fontFamily="@font/ramona_light"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <CheckBox
+            android:id="@+id/agreementCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:buttonTint="#005BFF"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Согласен с условиями и Правилами пользования торговой площадки и правилами Возврата"
+                android:textColor="#001A34"
+                android:textSize="14sp"
+                android:fontFamily="@font/montserratregular"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Разделитель -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
         android:layout_marginBottom="16dp"/>
 
     <!-- Кнопка оплаты -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/payButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:text="Оплатить"
         android:textColor="#FFFFFF"
         android:backgroundTint="#005BFF"
-        android:textSize="18sp"
-        android:fontFamily="@font/ramona_bold"
+        android:textSize="16sp"
+        android:fontFamily="@font/montserratsemibold"
+        app:cornerRadius="8dp"
         android:enabled="false"
-        android:alpha="0.5"/>
+        android:alpha="0.5"
+        app:icon="@drawable/ic_payment"
+        app:iconTint="#FFFFFF"
+        app:iconGravity="start"
+        app:iconPadding="8dp"
+        android:contentDescription="Оплатить"/>
 </LinearLayout>

@@ -1,28 +1,27 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
+    android:layout_width="160dp"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
     app:cardUseCompatPadding="true">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:layout_height="260dp"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#FFFFFF">
+        android:padding="8dp"
+        android:background="@drawable/card_background_shadow"
+        android:foreground="?android:attr/selectableItemBackground">
 
         <!-- Изображение товара -->
         <ImageView
             android:id="@+id/productImage"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_width="130dp"
+            android:layout_height="160dp"
             android:scaleType="centerCrop"
-            android:background="#F1F1F1"
-            android:layout_marginBottom="8dp"
-            />
+            android:background="#F5F5F5"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="8dp"/>
 
         <!-- Название товара -->
         <TextView
@@ -31,9 +30,13 @@
             android:layout_height="wrap_content"
             android:text="Название товара"
             android:textColor="#001A34"
-            android:textSize="18sp"
+            android:textSize="15sp"
+            android:fontFamily="@font/montserratsemibold"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp"/>
+            android:layout_marginBottom="8dp"
+            android:drawableStart="@drawable/ic_cart"
+            android:drawableTint="#EC407A"
+            android:drawablePadding="8dp"/>
 
         <!-- Цена товара -->
         <TextView
@@ -42,9 +45,10 @@
             android:layout_height="wrap_content"
             android:text="1000 ₽"
             android:textColor="#005BFF"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"/>
-
-
+            android:textSize="13sp"
+            android:fontFamily="@font/montserratregular"
+            android:drawableStart="@drawable/ic_price"
+            android:drawableTint="#EC407A"
+            android:drawablePadding="8dp"/>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -1,88 +1,148 @@
-<!-- res/layout/dialog_add_card.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#FFFFFF">
+    android:padding="24dp"
+    android:background="@drawable/bg_rounded_dialog">
 
-    <!-- Поле для ввода номера карты -->
-    <EditText
-        android:id="@+id/etCardNumber"
+    <!-- Заголовок -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Номер карты"
-        android:inputType="number"
-        android:textSize="16sp"
+        android:text="Добавление карты"
         android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        android:textSize="20sp"
+        android:fontFamily="@font/montserratbold"
+        android:layout_marginBottom="16dp"/>
 
-    <!-- Поле для ввода CVV -->
-    <EditText
-        android:id="@+id/etCardCVV"
+    <!-- Поле для номера карты -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/cardNumberLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="CVV"
-        android:inputType="number"
-        android:textSize="16sp"
-        android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        android:layout_marginBottom="12dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_credit_card"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
 
-    <!-- Поле для ввода даты окончания действия -->
-    <EditText
-        android:id="@+id/etCardExpiry"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCardNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Номер карты"
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:maxLength="19"
+        android:textColor="#001A34"
+        android:textSize="16sp"
+        android:fontFamily="@font/montserratregular"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Группа полей срока и CVV -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="ММ/ГГ"
-        android:inputType="text"
-        android:textSize="16sp"
-        android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <!-- Поле срока действия -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/expiryLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="#005BFF"
+            app:hintTextColor="#005BFF"
+            app:startIconDrawable="@drawable/ic_calendar"
+            app:startIconTint="#005BFF"
+            style="@style/CustomTextInputLayout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCardExpiry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="ММ/ГГ"
+                android:inputType="number"
+                android:imeOptions="actionNext"
+                android:maxLength="5"
+                android:textColor="#001A34"
+                android:textSize="16sp"
+                android:fontFamily="@font/montserratregular"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Поле CVV -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/cvvLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="#005BFF"
+            app:hintTextColor="#005BFF"
+            app:startIconDrawable="@drawable/ic_lock"
+            app:startIconTint="#005BFF"
+            app:passwordToggleEnabled="true"
+            app:passwordToggleDrawable="@drawable/ic_visibility"
+            app:passwordToggleTint="#005BFF"
+            style="@style/CustomTextInputLayout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCardCVV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="CVV"
+                android:inputType="numberPassword"
+                android:maxLength="3"
+                android:textColor="#001A34"
+                android:textSize="16sp"
+                android:fontFamily="@font/montserratregular"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
 
     <!-- Кнопки -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:layout_marginTop="8dp">
 
-        <!-- Кнопка "Добавить" -->
-        <Button
+        <!-- Кнопка Отмена -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Отмена"
+            android:textColor="#005BFF"
+            android:backgroundTint="#E6F0FF"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"/>
+
+        <!-- Кнопка Добавить -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAdd"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
             android:text="Добавить"
             android:textColor="#FFFFFF"
             android:backgroundTint="#005BFF"
             android:textSize="16sp"
-            android:fontFamily="@font/ramona_bold"
-            android:layout_marginStart="8dp" />
-
-        <!-- Кнопка "Отмена" -->
-        <Button
-            android:id="@+id/btnCancel"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Отмена"
-            android:textColor="#005BFF"
-            android:backgroundTint="#FFFFFF"
-            android:textSize="16sp"
-            android:fontFamily="@font/ramona_bold"
-            android:layout_marginEnd="8dp" />
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"/>
 
     </LinearLayout>
 </LinearLayout>

@@ -1,0 +1,5 @@
+<!-- res/drawable/price_background.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#E6F0FF"/>
+    <corners android:radius="8dp"/>
+</shape>

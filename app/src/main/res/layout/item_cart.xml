@@ -2,8 +2,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="4dp"
     app:cardUseCompatPadding="true">
 
@@ -11,7 +11,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@drawable/card_background_shadow"
+        android:foreground="?android:attr/selectableItemBackground">
 
         <!-- Изображение товара -->
         <ImageView
@@ -19,8 +21,9 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:scaleType="centerCrop"
-            android:background="#F1F1F1"
-            android:layout_marginEnd="16dp"/>
+            android:background="#F5F5F5"
+            android:layout_marginEnd="16dp"
+            app:cardCornerRadius="8dp"/>
 
         <!-- Информация о товаре -->
         <LinearLayout
@@ -36,7 +39,8 @@
                 android:layout_height="wrap_content"
                 android:text="Название товара"
                 android:textColor="#001A34"
-                android:textSize="19sp"
+                android:textSize="18sp"
+                android:fontFamily="@font/montserratsemibold"
                 android:textStyle="bold"
                 android:layout_marginBottom="4dp"/>
 
@@ -48,6 +52,7 @@
                 android:text="1000 ₽"
                 android:textColor="#005BFF"
                 android:textSize="14sp"
+                android:fontFamily="@font/montserratregular"
                 android:layout_marginBottom="8dp"/>
 
             <!-- Управление количеством -->
@@ -60,13 +65,13 @@
                 <!-- Кнопка уменьшения количества -->
                 <ImageView
                     android:id="@+id/decreaseQuantity"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:src="@drawable/strelka"
-                    android:rotation="180"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_minus"
+                    android:tint="#EC407A"
                     android:contentDescription="Уменьшить"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:layout_marginEnd="8dp"/>
+                    android:layout_marginEnd="12dp"/>
 
                 <!-- Количество -->
                 <TextView
@@ -74,30 +79,32 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:textColor="#001A34"
-                    android:layout_marginEnd="8dp"/>
+                    android:fontFamily="@font/montserratsemibold"
+                    android:layout_marginEnd="12dp"/>
 
                 <!-- Кнопка увеличения количества -->
                 <ImageView
                     android:id="@+id/increaseQuantity"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:src="@drawable/strelka"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_plus"
+                    android:tint="#EC407A"
                     android:contentDescription="Увеличить"
-                    android:background="?attr/selectableItemBackgroundBorderless" />
+                    android:background="?attr/selectableItemBackgroundBorderless"/>
             </LinearLayout>
         </LinearLayout>
 
         <!-- Кнопка удаления товара -->
         <ImageView
             android:id="@+id/deleteItemButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/delete"
-            android:tint="#F1117E"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/ic_delete"
+            android:tint="#EC407A"
             android:contentDescription="Удалить товар"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:layout_marginStart="16dp"/>
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_marginStart="16dp"/>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

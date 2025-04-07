@@ -1,69 +1,215 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="@drawable/bg_rounded_dialog">
 
-    <EditText
-        android:id="@+id/etEditLastName"
+    <!-- Поле для ввода фамилии -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Фамилия" />
+        android:layout_marginBottom="16dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_user"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
 
-    <EditText
-        android:id="@+id/etEditFirstName"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEditLastName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Фамилия"
+            android:inputType="textPersonName"
+            android:imeOptions="actionNext"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Поле для ввода фамилии"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Поле для ввода имени -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Имя" />
+        android:layout_marginBottom="16dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_user"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
 
-    <EditText
-        android:id="@+id/etEditMiddleName"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEditFirstName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Имя"
+            android:inputType="textPersonName"
+            android:imeOptions="actionNext"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Поле для ввода имени"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Поле для ввода отчества -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Отчество" />
+        android:layout_marginBottom="16dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_user"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
 
-    <EditText
-        android:id="@+id/etEditEmail"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEditMiddleName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Отчество"
+            android:inputType="textPersonName"
+            android:imeOptions="actionNext"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Поле для ввода отчества"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Поле для ввода названия магазина -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Логин (email)"
-        android:inputType="textEmailAddress" />
+        android:layout_marginBottom="16dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_store"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
 
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEditStoreName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Название магазина"
+            android:inputType="text"
+            android:imeOptions="actionNext"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Поле для ввода названия магазина"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <EditText
-        android:id="@+id/etEditStoreName"
+    <!-- Поле для ввода ОГРНИП -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Название магазина" />
+        android:layout_marginBottom="16dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_document"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
 
-    <EditText
-        android:id="@+id/etEditOGRNIP"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEditOGRNIP"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="ОГРНИП"
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Поле для ввода ОГРНИП"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Поле для ввода ИНН -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="ОГРНИП"
-        android:inputType="number" />
+        android:layout_marginBottom="32dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_document"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
 
-    <EditText
-        android:id="@+id/etEditINN"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEditINN"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="ИНН"
+            android:inputType="number"
+            android:imeOptions="actionDone"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Поле для ввода ИНН"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Кнопки -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="ИНН"
-        android:inputType="number" />
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="center">
 
-    <Button
-        android:id="@+id/btnSave"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Сохранить"
-        android:backgroundTint="#00A2FF"
-        android:textColor="#FFFFFF" />
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Отмена"
+            android:textColor="#005BFF"
+            android:backgroundTint="#E6F0FF"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Кнопка отмены"
+            android:drawableTint="#005BFF"
+            android:drawablePadding="8dp"/>
 
-    <Button
-        android:id="@+id/btnCancel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Отмена"
-        android:backgroundTint="#FF0000"
-        android:textColor="#FFFFFF" />
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="Сохранить"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#005BFF"
+            android:textSize="13sp"
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"
+            android:importantForAccessibility="yes"
+            android:contentDescription="Кнопка сохранения"
+            android:drawableStart="@drawable/ic_save"
+            android:drawableTint="#FFFFFF"
+            android:drawablePadding="8dp"/>
+    </LinearLayout>
 </LinearLayout>

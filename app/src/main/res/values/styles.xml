@@ -35,6 +35,12 @@
         <item name="android:textSize">14sp</item>
         <item name="android:fontFamily">@font/ramona_light</item>
     </style>
+    <style name="GradientText" parent="TextAppearance.AppCompat.Large">
+        <item name="android:textSize">60sp</item>
+        <item name="android:fontFamily">@font/montserratsemibold</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@drawable/gradient_text</item>
+    </style>
 
         <style name="ButtonStyle2">
             <item name="android:background">@drawable/button_background</item> <!-- Custom background -->
@@ -43,6 +49,36 @@
             <item name="android:layout_marginBottom">16dp</item>
             <item name="android:fontFamily">@font/ramona_bold</item>
         </style>
+
+        <!-- Стиль для TextInputLayout -->
+        <style name="CustomTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            <!-- Цвет обводки -->
+            <item name="boxStrokeColor">#42A5F5</item>
+            <!-- Радиус скругления углов -->
+            <item name="boxCornerRadiusTopStart">10dp</item>
+            <item name="boxCornerRadiusTopEnd">10dp</item>
+            <item name="boxCornerRadiusBottomStart">10dp</item>
+            <item name="boxCornerRadiusBottomEnd">10dp</item>
+            <!-- Цвет текста подсказки -->
+            <item name="hintTextColor">#90A4AE</item>
+            <!-- Иконка в начале поля -->
+        </style>
+
+        <!-- Стиль для TextInputEditText -->
+        <style name="CustomTextInputEditText">
+            <!-- Цвет текста в поле ввода -->
+            <item name="android:textColor">#37474F</item>
+            <!-- Размер текста -->
+            <item name="android:textSize">16sp</item>
+            <!-- Шрифт -->
+            <item name="android:fontFamily">@font/montserratregular</item>
+            <!-- Паддинг внутри поля -->
+            <item name="android:padding">12dp</item>
+            <!-- Фон (убираем фон, чтобы он соответствовал стилю обводки) -->
+            <item name="android:background">@null</item>
+        </style>
+
+
 
 
 </resources>

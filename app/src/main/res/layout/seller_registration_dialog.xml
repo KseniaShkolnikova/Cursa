@@ -1,126 +1,205 @@
-<!-- res/layout/dialog_register_seller.xml -->
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#FFFFFF">
+    android:padding="24dp"
+    android:background="@drawable/bg_rounded_dialog">
+
+    <!-- Заголовок -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Регистрация продавца"
+        android:textColor="#001A34"
+        android:textSize="20sp"
+        android:fontFamily="@font/montserratbold"
+        android:layout_marginBottom="16dp"/>
 
     <!-- Наименование магазина -->
-    <EditText
-        android:id="@+id/etStoreName"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/storeNameInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Наименование магазина"
-        android:textSize="16sp"
-        android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
         android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_store"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etStoreName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Наименование магазина"
+            android:inputType="text"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Фамилия -->
-    <EditText
-        android:id="@+id/etLastName"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/lastNameInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Фамилия"
-        android:textSize="16sp"
-        android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
         android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_user"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etLastName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Фамилия"
+            android:inputType="textPersonName"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Имя -->
-    <EditText
-        android:id="@+id/etFirstName"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/firstNameInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Имя"
-        android:textSize="16sp"
-        android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
         android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_user"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etFirstName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Имя"
+            android:inputType="textPersonName"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Отчество -->
-    <EditText
-        android:id="@+id/etMiddleName"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/middleNameInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Отчество"
-        android:textSize="16sp"
-        android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
         android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_user"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etMiddleName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Отчество"
+            android:inputType="textPersonName"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- ОГРНИП -->
-    <EditText
-        android:id="@+id/etOGRNIP"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/ogrnipInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="ОГРНИП"
-        android:textSize="16sp"
-        android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
         android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_document"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etOGRNIP"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="ОГРНИП"
+            android:inputType="number"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- ИНН -->
-    <EditText
-        android:id="@+id/etINN"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/innInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="ИНН"
-        android:textSize="16sp"
-        android:textColor="#001A34"
-        android:background="@drawable/rounded_edittext_background"
-        android:padding="12dp"
         android:layout_marginBottom="16dp"
-        android:fontFamily="@font/ramona_light"
-        android:textColorHint="#005BFF" />
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_document"
+        app:startIconTint="#005BFF"
+        style="@style/CustomTextInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etINN"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="ИНН"
+            android:inputType="number"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            style="@style/CustomTextInputEditText"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Кнопки -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:layout_marginTop="8dp">
 
         <!-- Кнопка "Отмена" -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
+            android:layout_marginEnd="4dp"
             android:text="Отмена"
             android:textColor="#005BFF"
-            android:backgroundTint="#FFFFFF"
+            android:backgroundTint="#E6F0FF"
             android:textSize="16sp"
-            android:fontFamily="@font/ramona_bold"
-            android:layout_marginEnd="8dp" />
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"/>
 
         <!-- Кнопка "Создать аккаунт" -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCreateAccount"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
             android:text="Создать аккаунт"
             android:textColor="#FFFFFF"
             android:backgroundTint="#005BFF"
-            android:textSize="16sp"
-            android:fontFamily="@font/ramona_bold"
-            android:layout_marginStart="8dp" />
+            android:textSize="12sp"
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"/>
     </LinearLayout>
 </LinearLayout>

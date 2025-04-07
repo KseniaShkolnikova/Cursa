@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
+    android:layout_margin="12dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp"
     app:cardUseCompatPadding="true">
@@ -13,7 +13,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
-        android:background="#FFFFFF">
+        android:background="@drawable/card_background_shadow"
+        android:foreground="?android:attr/selectableItemBackground">
 
         <!-- Horizontal RecyclerView for products -->
         <androidx.recyclerview.widget.RecyclerView
@@ -22,7 +23,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="12dp"/>
 
         <!-- Order status -->
         <TextView
@@ -32,17 +33,46 @@
             android:text="В доставке"
             android:textColor="#001A34"
             android:textSize="16sp"
+            android:fontFamily="@font/montserratsemibold"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp"/>
+            android:layout_marginBottom="4dp"
+            android:drawableStart="@drawable/ic_delivery"
+            android:drawableTint="#EC407A"
+            android:drawablePadding="8dp"/>
 
         <!-- Order details -->
         <TextView
             android:id="@+id/tvOrderDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Адрес: ул. Примерная, д. 1\nСумма: 1000 ₽\nДней до доставки: 3"
+            android:text="Адрес: ул. Примерная, д. 1\nСумма: 1000 ₽"
             android:textColor="#005BFF"
             android:textSize="16sp"
-            android:layout_marginBottom="8dp"/>
+            android:fontFamily="@font/montserratregular"
+            android:layout_marginBottom="4dp"
+            android:drawableStart="@drawable/ic_info"
+            android:drawableTint="#EC407A"
+            android:drawablePadding="8dp"/>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E6F0FF"
+            android:layout_marginVertical="4dp"/>
+
+        <!-- Days until delivery -->
+        <TextView
+            android:id="@+id/tvDaysUntilDelivery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Дней до доставки: 3"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"
+            android:layout_marginTop="4dp"
+            android:drawableStart="@drawable/ic_calendar"
+            android:drawableTint="#EC407A"
+            android:drawablePadding="8dp"/>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

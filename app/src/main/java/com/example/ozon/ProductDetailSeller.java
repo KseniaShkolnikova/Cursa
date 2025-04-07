@@ -1,5 +1,4 @@
 package com.example.ozon;
-
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -8,7 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,38 +17,30 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
 import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 public class ProductDetailSeller extends Fragment {
-
     private Product product;
     private ImageView productImage;
     private TextView productName, productPrice, productType, productDescription, productQuantity;
     private Button editProductButton;
     private TextView revenueTextView;
     private String userDocumentId;
-
     private static final int PICK_IMAGE_REQUEST = 1;
     private Uri imageUri;
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.product_detail_seller_layout, container, false);
-
         productImage = view.findViewById(R.id.productImage);
         productName = view.findViewById(R.id.productName);
         productPrice = view.findViewById(R.id.productPrice);
@@ -59,19 +49,14 @@ public class ProductDetailSeller extends Fragment {
         productDescription = view.findViewById(R.id.productDescription);
         productQuantity = view.findViewById(R.id.productQuantity);
         editProductButton = view.findViewById(R.id.editProductButton);
-
         Bundle bundle = getArguments();
         if (bundle != null) {
             userDocumentId = bundle.getString("userDocumentId");
-            String productId = bundle.getString("productId"); // Получаем ID товара
-
+            String productId = bundle.getString("productId");
             if (productId == null) {
-                Toast.makeText(requireContext(), "Ошибка: ID товара не найден", Toast.LENGTH_SHORT).show();
-                requireActivity().getSupportFragmentManager().popBackStack(); // Возвращаемся назад
+                requireActivity().getSupportFragmentManager().popBackStack();
                 return view;
             }
-
-            // Загружаем данные товара из Firestore
             FirebaseFirestore.getInstance().collection("products")
                     .document(productId)
                     .get()
@@ -93,23 +78,19 @@ public class ProductDetailSeller extends Fragment {
                     });
         } else {
             Toast.makeText(requireContext(), "Ошибка: данные не переданы", Toast.LENGTH_SHORT).show();
-            requireActivity().getSupportFragmentManager().popBackStack(); // Возвращаемся назад
+            requireActivity().getSupportFragmentManager().popBackStack();
         }
-
         editProductButton.setOnClickListener(v -> showOptionsMenu());
-
         return view;
     }
     private void calculateRevenue() {
         if (product == null) return;
-
         FirebaseFirestore.getInstance().collection("orders")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         double totalRevenue = 0;
                         int totalQuantitySold = 0;
-
                         for (DocumentSnapshot order : task.getResult()) {
                             List<Map<String, Object>> products = (List<Map<String, Object>>) order.get("products");
                             if (products != null) {
@@ -117,8 +98,6 @@ public class ProductDetailSeller extends Fragment {
                                     String productName = (String) productInOrder.get("name");
                                     Long priceLong = (Long) productInOrder.get("price");
                                     int price = priceLong != null ? priceLong.intValue() : 0;
-
-                                    // Сравниваем по имени и цене
                                     if (product.getName().equals(productName) && product.getPrice() == price) {
                                         Long quantityLong = (Long) productInOrder.get("quantity");
                                         int quantity = quantityLong != null ? quantityLong.intValue() : 0;
@@ -132,11 +111,9 @@ public class ProductDetailSeller extends Fragment {
                         revenueTextView.setText(String.format("Выручка: %.2f ₽ (продано %d шт.)", totalRevenue, totalQuantitySold));
                     } else {
                         revenueTextView.setText("Выручка: данные недоступны");
-                        Log.e("ProductDetailSeller", "Error getting orders", task.getException());
                     }
                 });
     }
-
     private void updateUI() {
         if (product != null) {
             productName.setText(product.getName());
@@ -157,7 +134,6 @@ public class ProductDetailSeller extends Fragment {
             }
         }
     }
-
     private void showOptionsMenu() {
         String[] options = {"Пополнить количество", "Изменить информацию", "Удалить товар"};
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
@@ -177,25 +153,24 @@ public class ProductDetailSeller extends Fragment {
         });
         builder.show();
     }
-
     private void showAddQuantityDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_add_quantity, null);
         builder.setView(dialogView);
-
         EditText quantityInput = dialogView.findViewById(R.id.quantityInput);
         Button cancelButton = dialogView.findViewById(R.id.cancelButton);
         Button saveButton = dialogView.findViewById(R.id.saveButton);
-
         AlertDialog dialog = builder.create();
-
         cancelButton.setOnClickListener(v -> dialog.dismiss());
-
         saveButton.setOnClickListener(v -> {
             String quantityStr = quantityInput.getText().toString();
             if (!quantityStr.isEmpty()) {
                 int addedQuantity = Integer.parseInt(quantityStr);
+                if (addedQuantity < 1) {
+                    Toast.makeText(requireContext(), "Количество должно быть не менее 1", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 updateProductQuantity(addedQuantity);
                 dialog.dismiss();
             } else {
@@ -205,14 +180,12 @@ public class ProductDetailSeller extends Fragment {
 
         dialog.show();
     }
-
     private void updateProductQuantity(int addedQuantity) {
         int newQuantity = product.getQuantity() + addedQuantity;
         FirebaseFirestore.getInstance().collection("products")
                 .document(product.getId())
                 .update("quantity", newQuantity)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(), "Количество обновлено", Toast.LENGTH_SHORT).show();
                     product.setQuantity(newQuantity);
                     productQuantity.setText(String.format("Количество: %d", newQuantity));
                 })
@@ -220,49 +193,83 @@ public class ProductDetailSeller extends Fragment {
                     Toast.makeText(requireContext(), "Ошибка при обновлении", Toast.LENGTH_SHORT).show();
                 });
     }
-
     private void showEditProductDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_edit_product, null);
         builder.setView(dialogView);
-
         EditText editName = dialogView.findViewById(R.id.editName);
         EditText editPrice = dialogView.findViewById(R.id.editPrice);
         EditText editDescription = dialogView.findViewById(R.id.editDescription);
         Spinner editTypeSpinner = dialogView.findViewById(R.id.editTypeSpinner);
         Button uploadImageButton = dialogView.findViewById(R.id.uploadImageButton);
+        Button removeImageButton = dialogView.findViewById(R.id.removeImageButton); // Новая кнопка
         Button cancelButton = dialogView.findViewById(R.id.cancelButton);
         Button saveButton = dialogView.findViewById(R.id.saveButton);
-
+        if (editName == null || editPrice == null || editDescription == null || editTypeSpinner == null ||
+                uploadImageButton == null || cancelButton == null || saveButton == null || removeImageButton == null) {
+            Toast.makeText(requireContext(), "Ошибка интерфейса", Toast.LENGTH_SHORT).show();
+            return;
+        }
         loadProductTypes(editTypeSpinner);
-
-        editName.setText(product.getName());
-        editPrice.setText(String.valueOf(product.getPrice()));
-        editDescription.setText(product.getDescription());
-
-        uploadImageButton.setOnClickListener(v -> openImagePicker());
-
+        editName.setText(product != null ? product.getName() : "");
+        editPrice.setText(product != null ? String.valueOf(product.getPrice()) : "");
+        editDescription.setText(product != null ? product.getDescription() : "");
         AlertDialog dialog = builder.create();
-
-        cancelButton.setOnClickListener(v -> dialog.dismiss());
-
-        saveButton.setOnClickListener(v -> {
-            String name = editName.getText().toString();
-            String priceStr = editPrice.getText().toString();
-            String description = editDescription.getText().toString();
-            String type = editTypeSpinner.getSelectedItem().toString();
-
-            if (!name.isEmpty() && !priceStr.isEmpty() && !description.isEmpty()) {
-                int price = Integer.parseInt(priceStr);
-                updateProductInfo(name, price, description, type, imageUri);
-                dialog.dismiss();
-            } else {
-                Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
-            }
+        uploadImageButton.setOnClickListener(v -> openImagePicker());
+        removeImageButton.setOnClickListener(v -> {
+            imageUri = null;
+            updateProductInfo(editName.getText().toString().trim(),
+                    Integer.parseInt(editPrice.getText().toString().trim()),
+                    editDescription.getText().toString().trim(),
+                    editTypeSpinner.getSelectedItem().toString(),
+                    null);
+            dialog.dismiss();
         });
-
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        saveButton.setOnClickListener(v -> {
+            String name = editName.getText().toString().trim();
+            String priceStr = editPrice.getText().toString().trim();
+            String description = editDescription.getText().toString().trim();
+            Object selectedItem = editTypeSpinner.getSelectedItem();
+            if (!validateProductInput(name, priceStr, description, selectedItem)) {
+                return;
+            }
+            int price = Integer.parseInt(priceStr);
+            String type = selectedItem.toString();
+            updateProductInfo(name, price, description, type, imageUri);
+            dialog.dismiss();
+        });
         dialog.show();
+    }
+    private boolean validateProductInput(String name, String priceStr, String description, Object selectedItem) {
+        if (name.length() < 4) {
+            Toast.makeText(requireContext(), "Название должно содержать минимум 4 символа", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (priceStr.isEmpty()) {
+            Toast.makeText(requireContext(), "Введите цену", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        try {
+            int price = Integer.parseInt(priceStr);
+            if (price < 1) {
+                Toast.makeText(requireContext(), "Цена должна быть не менее 1 рубля", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(requireContext(), "Цена должна быть числом", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (description.length() < 10) {
+            Toast.makeText(requireContext(), "Описание должно содержать минимум 10 символов", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (selectedItem == null) {
+            Toast.makeText(requireContext(), "Выберите категорию товара", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 
     private void loadProductTypes(Spinner spinner) {
@@ -292,20 +299,18 @@ public class ProductDetailSeller extends Fragment {
                     }
                 });
     }
-
     private void updateProductInfo(String name, int price, String description, String type, Uri imageUri) {
         String imageBase64 = product.getImageBase64();
-
         if (imageUri != null) {
             imageBase64 = handleImage(imageUri);
-            if (imageBase64 == null) {
-                Toast.makeText(requireContext(), "Ошибка обработки изображения", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        } else if (imageUri == null && product.getImageBase64() != null && !product.getImageBase64().isEmpty()) {
+            imageBase64 = null;
         }
-
+        if (imageBase64 == null && imageUri != null) {
+            Toast.makeText(requireContext(), "Ошибка обработки изображения", Toast.LENGTH_SHORT).show();
+            return;
+        }
         final String finalImageBase64 = imageBase64;
-
         FirebaseFirestore.getInstance().collection("products")
                 .document(product.getId())
                 .update(
@@ -316,43 +321,36 @@ public class ProductDetailSeller extends Fragment {
                         "imageBase64", finalImageBase64
                 )
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(), "Информация обновлена", Toast.LENGTH_SHORT).show();
-                    if (finalImageBase64 != null) {
-                        Bitmap bitmap = base64ToBitmap(finalImageBase64);
-                        if (bitmap != null) {
-                            Glide.with(this).load(bitmap).into(productImage);
-                        }
-                    }
+                    product.setName(name);
+                    product.setPrice(price);
+                    product.setDescription(description);
+                    product.setProductType(type);
+                    product.setImageBase64(finalImageBase64);
+                    updateUI();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Ошибка при обновлении", Toast.LENGTH_SHORT).show();
                 });
     }
-
     private String handleImage(Uri imageUri) {
         try {
             InputStream inputStream = requireActivity().getContentResolver().openInputStream(imageUri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-
-            // Resize and compress the image
             Bitmap resizedBitmap = resizeBitmap(bitmap, 800, 800);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
             byte[] byteArray = byteArrayOutputStream.toByteArray();
-
             return Base64.encodeToString(byteArray, Base64.DEFAULT);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
-
     private Bitmap resizeBitmap(Bitmap bitmap, int maxWidth, int maxHeight) {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
         float ratioBitmap = (float) width / (float) height;
         float ratioMax = (float) maxWidth / (float) maxHeight;
-
         int finalWidth = maxWidth;
         int finalHeight = maxHeight;
         if (ratioMax > ratioBitmap) {
@@ -360,23 +358,19 @@ public class ProductDetailSeller extends Fragment {
         } else {
             finalHeight = (int) ((float) maxWidth / ratioBitmap);
         }
-
         return Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true);
     }
-
     private void deleteProduct() {
         FirebaseFirestore.getInstance().collection("products")
                 .document(product.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(), "Товар удален", Toast.LENGTH_SHORT).show();
                     requireActivity().getSupportFragmentManager().popBackStack();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Ошибка при удалении", Toast.LENGTH_SHORT).show();
                 });
     }
-
     private Bitmap base64ToBitmap(String base64String) {
         try {
             byte[] decodedBytes = Base64.decode(base64String, Base64.DEFAULT);
@@ -386,23 +380,16 @@ public class ProductDetailSeller extends Fragment {
             return null;
         }
     }
-
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == getActivity().RESULT_OK && data != null) {
             imageUri = data.getData();
-
-            // Отображаем выбранное изображение
-            ImageView productImagePreview = getView().findViewById(R.id.productImagePreview);
-            if (productImagePreview != null && imageUri != null) {
-                productImagePreview.setImageURI(imageUri);
-            }
+            Glide.with(this).load(imageUri).into(productImage);
         }
     }
 }

@@ -3,10 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="@drawable/card_background"
+    android:background="@drawable/gray_border"
     android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
+    android:layout_margin="12dp"
+    android:gravity="center_vertical"
+    android:clipToPadding="false"
+    android:foreground="?android:attr/selectableItemBackground">
 
     <!-- Номер карты -->
 <TextView
@@ -15,16 +17,19 @@ android:layout_width="0dp"
 android:layout_height="wrap_content"
 android:layout_weight="1"
 android:text="Карта **** 1234"
-android:textColor="#001A34"
+android:textColor="#005BFF"
 android:textSize="16sp"
-android:fontFamily="@font/ramona_light"
-android:textStyle="bold"/>
+android:fontFamily="@font/montserratsemibold"
+android:textStyle="bold"
+android:drawableTint="#EC407A"
+android:drawablePadding="12dp"/>
 
     <!-- Иконка карты -->
 <ImageView
-android:layout_width="24dp"
-android:layout_height="24dp"
+android:layout_width="28dp"
+android:layout_height="28dp"
 android:src="@drawable/card"
-    android:tint="#F1117E"
-    android:layout_marginStart="8dp"/>
+android:tint="#EC407A"
+android:layout_marginStart="8dp"
+android:scaleType="centerInside"/>
     </LinearLayout>

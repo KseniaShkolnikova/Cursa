@@ -1,46 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
 
+    <!-- Карта (занимает все пространство) -->
     <com.yandex.mapkit.mapview.MapView
         android:id="@+id/mapview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/bottomContainer"/>
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottomCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-    <LinearLayout
-        android:id="@+id/bottomContainer"
-        android:layout_width="match_parent"
+    <!-- Карточка с кнопками внизу (стилизованная как в первом примере) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/bottomCard"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#FFFFFF">
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleHorizontal"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:visibility="gone"/>
+            android:orientation="vertical"
+            android:padding="20dp">
 
-        <Button
-            android:id="@+id/btnResetLocation"
-            android:layout_width="375dp"
-            android:layout_height="62dp"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="16dp"
-            android:text="Вернуться к моему местоположению" />
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp"/>
 
-        <Button
-            android:id="@+id/btnConfirmSelection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Подтвердить выбор"
-            android:enabled="false"
-            android:backgroundTint="@color/highlight_color"/>
-    </LinearLayout>
-</RelativeLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetLocation"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="#42A5F5"
+                android:text="Вернуться к моему местоположению"
+                android:textSize="16sp"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_my_location" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConfirmSelection"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="Подтвердить выбор"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:enabled="false"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_check"
+                app:iconTint="#FFFFFF"
+                android:backgroundTint="#EC407A"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelSelection"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="Отмена"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:backgroundTint="#A2A1A1"
+                app:cornerRadius="12dp"
+                app:iconTint="#FFFFFF"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

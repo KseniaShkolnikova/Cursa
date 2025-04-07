@@ -2,14 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" tools:node="merge" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <application
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -33,33 +34,28 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".AutorizationForSellerActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".RegistrationActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".CustomerMainActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".CreateProductActivity"
-            android:exported="true" />
-        <activity
-            android:name=".ProductDetail"
-            android:exported="true" />
-        <activity
-            android:name=".SellerMainActivity"
-            android:exported="true" />
+        <activity android:name=".AutorizationForSellerActivity" android:exported="true" />
+        <activity android:name=".RegistrationActivity" android:exported="true" />
+        <activity android:name=".CustomerMainActivity" android:exported="true" />
+        <activity android:name=".CreateProductActivity" android:exported="true" />
+        <activity android:name=".ProductDetail" android:exported="true" />
+        <activity android:name=".SellerMainActivity" android:exported="true" />
         <activity
             android:name=".MapSelectionActivity"
             android:exported="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-    </activity>
+            android:theme="@style/Theme.Ozon" />
 
+        <receiver android:name=".DeliveryReminderReceiver" android:exported="false" />
+        <receiver
+            android:name=".DeliveryWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.ozon.UPDATE_WIDGET" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/delivery_widget_info" />
+        </receiver>
     </application>
-
 </manifest>

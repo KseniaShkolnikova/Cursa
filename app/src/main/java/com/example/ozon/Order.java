@@ -1,86 +1,54 @@
 package com.example.ozon;
-
 import com.google.firebase.Timestamp;
 import java.util.List;
-
 public class Order {
     private String userId;
     private int totalAmount;
-    private String cardNumber;
-    private List<String> productIds;
-    private String status; // Добавлено: статус заказа
-    private Timestamp orderDate; // Добавлено: дата заказа
-    private Long days; // Добавлено: срок доставки в днях
-
+    private String paymentMethod;
+    private List<Product> products;
+    private String status;
+    private Timestamp orderDate;
+    private Long days;
+    private Long initialDays;
+    private Boolean notificationSent;
+    private String deliveryAddress;
+    private Long lastNotifiedDays;
     public Order() {
-        // Пустой конструктор для Firestore
     }
-
-    public Order(String userId, int totalAmount, String cardNumber, List<String> productIds,
-                 String status, Timestamp orderDate, Long days) {
+    public Order(String userId, int totalAmount, String paymentMethod, List<Product> products,
+                 String status, Timestamp orderDate, Long initialDays, String deliveryAddress) {
         this.userId = userId;
         this.totalAmount = totalAmount;
-        this.cardNumber = cardNumber;
-        this.productIds = productIds;
+        this.paymentMethod = paymentMethod;
+        this.products = products;
         this.status = status;
         this.orderDate = orderDate;
-        this.days = days;
+        this.days = 0L;
+        this.initialDays = initialDays;
+        this.notificationSent = false;
+        this.deliveryAddress = deliveryAddress;
+        this.lastNotifiedDays = null;
     }
-
-    // Геттеры и сеттеры
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public int getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(int totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
-    public String getCardNumber() {
-        return cardNumber;
-    }
-
-    public void setCardNumber(String cardNumber) {
-        this.cardNumber = cardNumber;
-    }
-
-    public List<String> getProductIds() {
-        return productIds;
-    }
-
-    public void setProductIds(List<String> productIds) {
-        this.productIds = productIds;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Timestamp getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(Timestamp orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    public Long getDays() {
-        return days;
-    }
-
-    public void setDays(Long days) {
-        this.days = days;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public int getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(int totalAmount) { this.totalAmount = totalAmount; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public List<Product> getProducts() { return products; }
+    public void setProducts(List<Product> products) { this.products = products; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public Timestamp getOrderDate() { return orderDate; }
+    public void setOrderDate(Timestamp orderDate) { this.orderDate = orderDate; }
+    public Long getDays() { return days; }
+    public void setDays(Long days) { this.days = days; }
+    public Long getInitialDays() { return initialDays; }
+    public void setInitialDays(Long initialDays) { this.initialDays = initialDays; }
+    public Boolean getNotificationSent() { return notificationSent; }
+    public void setNotificationSent(Boolean notificationSent) { this.notificationSent = notificationSent; }
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+    public Long getLastNotifiedDays() { return lastNotifiedDays; }
+    public void setLastNotifiedDays(Long lastNotifiedDays) { this.lastNotifiedDays = lastNotifiedDays; }
 }

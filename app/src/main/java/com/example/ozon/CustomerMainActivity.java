@@ -1,51 +1,48 @@
 package com.example.ozon;
-
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 import android.Manifest;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
-
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
 public class CustomerMainActivity extends AppCompatActivity {
     private static final String TAG = "CustomerMainActivity";
     private FirebaseFirestore db;
     private String userDocumentId;
-    private static final String CHANNEL_ID = "order_delivery_channel";
-
+    private OrderManager orderManager;
+    private Handler handler;
+    private Runnable recalculateRunnable;
+    private static final long RECALCULATE_INTERVAL = 6 * 1000;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.customer_layout);
-
+        NotificationHelper.createNotificationChannel(this);
         db = FirebaseFirestore.getInstance();
-
-        // Получаем userDocumentId и userRole из Intent
         userDocumentId = getIntent().getStringExtra("USER_DOCUMENT_ID");
         String userRole = getIntent().getStringExtra("USER_ROLE");
-
+        if (userDocumentId == null || userDocumentId.isEmpty()) {
+            Toast.makeText(this, "Ошибка: идентификатор пользователя не найден", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+        orderManager = new OrderManager(this);
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             Fragment selectedFragment = null;
-
             if (item.getItemId() == R.id.nav_catalog) {
                 selectedFragment = new CatalogActivity();
             } else if (item.getItemId() == R.id.nav_cart) {
@@ -53,13 +50,11 @@ public class CustomerMainActivity extends AppCompatActivity {
             } else if (item.getItemId() == R.id.nav_profile) {
                 selectedFragment = new ProfileActivity();
             }
-
             if (selectedFragment != null) {
                 Bundle bundle = new Bundle();
                 bundle.putString("USER_DOCUMENT_ID", userDocumentId);
                 bundle.putString("USER_ROLE", userRole);
                 selectedFragment.setArguments(bundle);
-
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frameLayout, selectedFragment)
                         .commit();
@@ -69,107 +64,125 @@ public class CustomerMainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_catalog);
         }
-
-        // Перерасчет заказов пользователя при запуске активности
-        recalculateUserOrders();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
+        if (NetworkUtil.isNetworkAvailable(this)) {
+            recalculateUserOrders();
+            startPeriodicRecalculation();
+        } else {
+            Toast.makeText(this, "Нет подключения к интернету", Toast.LENGTH_LONG).show();
+        }
     }
-
+    private void startPeriodicRecalculation() {
+        handler = new Handler(Looper.getMainLooper());
+        recalculateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (NetworkUtil.isNetworkAvailable(CustomerMainActivity.this)) {
+                    recalculateUserOrders();
+                }
+                handler.postDelayed(this, RECALCULATE_INTERVAL);
+            }
+        };
+        handler.post(recalculateRunnable);
+    }
     private void recalculateUserOrders() {
-        if (userDocumentId == null) {
-            Log.e(TAG, "userDocumentId is null, skipping recalculation");
+        if (userDocumentId == null || userDocumentId.isEmpty()) {
             return;
         }
-
-        Log.d(TAG, "Starting recalculation of orders for user: " + userDocumentId);
         db.collection("orders")
                 .whereEqualTo("userId", userDocumentId)
-                .whereEqualTo("status", "создан")
+                .whereIn("status", Arrays.asList("создан", "в процессе", "доставлен"))
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " active orders for user " + userDocumentId);
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        return;
+                    }
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        checkAndUpdateOrder(doc);
+                        try {
+                            checkAndUpdateOrder(doc);
+                        }catch (Exception e){}
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error recalculating orders for user " + userDocumentId, e);
+                    Toast.makeText(this, "Ошибка загрузки заказов: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
-
+    @SuppressLint("MissingPermission")
     private void checkAndUpdateOrder(DocumentSnapshot doc) {
-        com.google.firebase.Timestamp orderDate = doc.getTimestamp("orderDate");
-        Long daysToDelivery = doc.getLong("days");
-
-        if (orderDate == null || daysToDelivery == null) {
-            Log.e(TAG, "Order " + doc.getId() + " is missing required fields");
-            return;
-        }
-
-        long millisecondsSinceOrder = System.currentTimeMillis() - orderDate.toDate().getTime();
-        long daysSinceOrder = TimeUnit.MILLISECONDS.toDays(millisecondsSinceOrder);
-        long remainingDays = daysToDelivery - daysSinceOrder;
-
-        Log.d(TAG, "Order " + doc.getId() + ": daysSinceOrder=" + daysSinceOrder + ", daysToDelivery=" + daysToDelivery + ", remainingDays=" + remainingDays);
-
-        if (remainingDays <= 0) {
-            // Заказ доставлен
-            db.collection("orders").document(doc.getId())
-                    .update("status", "доставлен", "days", 0)
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Order " + doc.getId() + " marked as delivered");
-                        sendDeliveryNotification(doc.getId());
-                    })
-                    .addOnFailureListener(e -> Log.e(TAG, "Error marking order " + doc.getId() + " as delivered", e));
-        } else {
-            // Обновляем оставшиеся дни
-            db.collection("orders").document(doc.getId())
-                    .update("days", remainingDays)
-                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Order " + doc.getId() + " days updated to " + remainingDays))
-                    .addOnFailureListener(e -> Log.e(TAG, "Error updating days for order " + doc.getId(), e));
-        }
-    }
-
-    private void sendDeliveryNotification(String orderId) {
-        createNotificationChannel();
-
-        Intent intent = new Intent(this, CustomerMainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        intent.putExtra("USER_DOCUMENT_ID", userDocumentId);
-        intent.putExtra("USER_ROLE", "customer");
-        intent.putExtra("order_id", orderId); // Для отображения конкретного заказа в профиле, если нужно
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification) // Убедитесь, что у вас есть этот ресурс
-                .setContentTitle("Заказ доставлен!")
-                .setContentText("Ваш заказ #" + orderId + " успешно доставлен!")
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            notificationManager.notify(orderId.hashCode(), builder.build());
-            Log.d(TAG, "Notification sent for order " + orderId);
-        } else {
-            Log.w(TAG, "No permission to send notification for order " + orderId);
-        }
-    }
-
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Order Delivery",
-                    NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("Notifications about order delivery status");
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-                Log.d(TAG, "Notification channel created");
+        try {
+            Order order = doc.toObject(Order.class);
+            if (order == null) {
+                return;
             }
+            Date orderDate = order.getOrderDate().toDate();
+            Long initialDays = order.getInitialDays();
+            if (orderDate == null) {
+                return;
+            }
+            if (initialDays == null) {
+                initialDays = 0L;
+                order.setInitialDays(initialDays);
+            }
+            Calendar currentDate = Calendar.getInstance();
+            Calendar orderCalendar = Calendar.getInstance();
+            orderCalendar.setTime(orderDate);
+            long millisecondsDiff = currentDate.getTimeInMillis() - orderCalendar.getTimeInMillis();
+            long daysSinceCreation = TimeUnit.MILLISECONDS.toDays(millisecondsDiff);
+            long remainingDays = Math.max(0, initialDays - daysSinceCreation - 1);
+            Long originalDays = order.getDays();
+            order.setDays(remainingDays);
+            Boolean notificationSent = order.getNotificationSent() != null ? order.getNotificationSent() : false;
+            Long lastNotifiedDays = order.getLastNotifiedDays();
+            if (remainingDays <= 0) {
+                if (!"доставлен".equals(order.getStatus())) {
+                    order.setStatus("доставлен");
+                    order.setNotificationSent(true);
+                    order.setLastNotifiedDays(remainingDays);
+                    updateOrderInFirestore(order, doc.getId(), true, remainingDays);
+                } else if (!notificationSent) {
+                    order.setNotificationSent(true);
+                    order.setLastNotifiedDays(remainingDays);
+                    updateOrderInFirestore(order, doc.getId(), true, remainingDays);
+                }
+            } else {
+                if (!notificationSent || (lastNotifiedDays == null || lastNotifiedDays != remainingDays) ||
+                        (originalDays != null && !originalDays.equals(remainingDays))) {
+                    order.setNotificationSent(true);
+                    order.setLastNotifiedDays(remainingDays);
+                    updateOrderInFirestore(order, doc.getId(), false, remainingDays);
+                }
+            }
+        } catch (Exception e) {
+        }
+    }
+    private void updateOrderInFirestore(Order order, String orderId, boolean isDelivered, long remainingDays) {
+        db.collection("orders").document(orderId)
+                .set(order)
+                .addOnSuccessListener(aVoid -> {
+                    orderManager.createOrUpdateOrder(order, orderId);
+                    NotificationHelper.sendDeliveryNotification(this, orderId, isDelivered, remainingDays, userDocumentId, "customer");
+                });
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                recalculateUserOrders();
+            } else {
+                Toast.makeText(this, "Уведомления не прийдут без разрешения", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (handler != null && recalculateRunnable != null) {
+            handler.removeCallbacks(recalculateRunnable);
         }
     }
 }

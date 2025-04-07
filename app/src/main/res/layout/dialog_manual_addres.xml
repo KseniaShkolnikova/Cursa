@@ -1,27 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="@drawable/bg_rounded_dialog">
 
-    <EditText
-        android:id="@+id/etAddress"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Введите адрес доставки"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        style="@style/CustomTextInputLayout"
 
-    <Button
-        android:id="@+id/btnConfirm"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_address"
+        app:startIconTint="#005BFF">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Введите адрес доставки"
+            style="@style/CustomTextInputEditText"
+
+            android:inputType="text"
+            android:imeOptions="actionDone"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Подтвердить"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
 
-    <Button
-        android:id="@+id/btnCancel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Отмена"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Отмена"
+            android:textColor="#005BFF"
+            android:backgroundTint="#E6F0FF"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="Подтвердить"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#005BFF"
+            android:textSize="13sp"
+            android:fontFamily="@font/montserratregular"
+            app:cornerRadius="8dp"/>
+    </LinearLayout>
 </LinearLayout>

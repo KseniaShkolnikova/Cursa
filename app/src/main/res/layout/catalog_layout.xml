@@ -1,71 +1,176 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#FFFFFF"
-    tools:context=".CustomerMainActivity">
+    android:background="#E6E6FA"
+    tools:context=".CatalogActivity">
 
-    <!-- Поисковая строка с кнопкой -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp"
-        android:background="#FFFFFF"
-        android:padding="8dp"
-        android:gravity="center_vertical">
+    <!-- Декоративные элементы -->
+    <ImageView
+        android:id="@+id/topBagIcon"
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:alpha="0.35"
+        android:contentDescription="Декоративная иконка сумки"
+        android:rotation="20"
+        android:src="@drawable/ic_bag"
+        android:layout_marginTop="-30dp"
+        android:layout_marginEnd="-10dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <ImageButton
-            android:id="@+id/searchButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/serch"
-            android:contentDescription="Поиск"
-            android:padding="12dp"
-            android:tint="#005BFF"/>
+    <!-- Основная карточка -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <EditText
-            android:id="@+id/searchBar"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:background="@drawable/rounded_edittext_background"
-            android:hint="Поиск товаров"
-            android:textColor="#001A34"
-            android:textSize="16sp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:drawablePadding="8dp"/>
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="20dp">
 
-    <!-- Кнопка фильтров -->
-    <Button
-        android:id="@+id/filterButton"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="Фильтры"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#005BFF"
-        android:layout_marginBottom="16dp"/>
-    <TextView
-        android:id="@+id/emptyView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ничего не найдено"
-        android:textSize="18sp"
-        android:visibility="gone"
-    android:layout_gravity="center"
-    android:layout_marginTop="16dp"/>
+            <!-- Заголовок -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
 
-    <!-- Список товаров -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical"
-        android:padding="4dp" />
-</LinearLayout>
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/catalog"
+                    android:tint="#EC407A"
+                    android:layout_marginEnd="12dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Каталог товаров"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="#EC407A"
+                    android:fontFamily="@font/montserratbold"/>
+            </LinearLayout>
+
+            <!-- Объединённый блок поиска и фильтров -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Общий фон для поля поиска -->
+                <View
+                    android:id="@+id/search_background"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_toStartOf="@+id/searchButton"
+                android:layout_alignParentStart="true"
+                android:layout_marginEnd="1dp"
+                android:background="@drawable/search_field_background" />
+
+                <!-- Поле ввода -->
+                <EditText
+                    android:id="@+id/searchBar"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_toStartOf="@+id/searchButton"
+                android:layout_alignParentStart="true"
+                android:background="@null"
+                android:hint="Поиск товаров"
+                android:paddingStart="20dp"
+                android:paddingEnd="16dp"
+                android:textColor="#001A34"
+                android:textSize="16sp"
+                android:fontFamily="@font/montserratregular"/>
+
+                <!-- Кнопка поиска -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/searchButton"
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_toStartOf="@+id/filterButton"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/search_button_bg"
+                android:contentDescription="Поиск"
+                app:backgroundTint="@null"
+                app:icon="@drawable/serch"
+                app:iconGravity="start"
+                app:iconPadding="0dp"
+                app:iconSize="28dp"
+                app:iconTint="#FFFFFF" />
+
+                <!-- Кнопка фильтров -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/filterButton"
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:layout_width="56dp"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginStart="8dp"
+                    app:backgroundTint="#E6F0FF"
+                    app:cornerRadius="12dp"
+                    app:icon="@drawable/ic_filter_alt"
+                    app:iconGravity="start"
+                    app:iconPadding="0dp"
+                    app:iconSize="28dp"
+                    app:iconTint="#005BFF"
+                    app:rippleColor="#80D1E8FF" />
+            </RelativeLayout>
+
+            <!-- RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- EmptyView -->
+            <TextView
+                android:id="@+id/emptyView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ничего не найдено"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                android:textSize="16sp"
+                android:textColor="#001A34"
+                android:fontFamily="@font/montserratregular"
+                android:layout_marginTop="32dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Декоративные элементы -->
+    <ImageView
+        android:id="@+id/bottomBoxIcon"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/ic_box"
+        android:alpha="0.35"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <ImageView
+        android:id="@+id/bottomToyIcon"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:alpha="0.35"
+        android:tint="#6097FF"
+        android:src="@drawable/ic_toy"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

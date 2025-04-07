@@ -1,57 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="@drawable/bg_rounded_dialog">
 
-    <EditText
-        android:id="@+id/editName"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Название товара"/>
+        android:layout_marginBottom="12dp"
+        app:boxBackgroundMode="outline"
+        style="@style/CustomTextInputLayout"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_product_name"
+        app:startIconTint="#005BFF">
 
-    <EditText
-        android:id="@+id/editPrice"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Название товара"
+            style="@style/CustomTextInputEditText"
+            android:inputType="text"
+            android:imeOptions="actionNext"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="number"
-        android:hint="Цена"/>
+        android:layout_marginBottom="12dp"
+        app:boxBackgroundMode="outline"
+        style="@style/CustomTextInputLayout"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_price"
+        app:startIconTint="#005BFF">
 
-    <EditText
-        android:id="@+id/editDescription"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Цена"
+            style="@style/CustomTextInputEditText"
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Описание"/>
+        android:layout_marginBottom="12dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        style="@style/CustomTextInputLayout"
+        app:hintTextColor="#005BFF"
+        app:startIconDrawable="@drawable/ic_description"
+        app:startIconTint="#005BFF">
 
-    <Spinner
-        android:id="@+id/editTypeSpinner"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Описание"
+            android:inputType="textMultiLine"
+            style="@style/CustomTextInputEditText"
+            android:imeOptions="actionNext"
+            android:textColor="#001A34"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratregular"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/editTypeInputLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="#005BFF"
+        app:hintTextColor="#005BFF"
+        app:boxCornerRadiusTopStart="12dp"
+        style="@style/CustomTextInputLayout"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        android:background="@drawable/spinner_background">
 
-    <Button
+        <Spinner
+            android:id="@+id/editTypeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Категория товара"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:textColor="#001A34"
+            android:fontFamily="@font/montserratregular"
+            android:contentDescription="Выпадающий список для выбора категории товара"
+            android:popupBackground="#FFFFFF"
+            android:spinnerMode="dropdown"
+            android:drawableEnd="@drawable/ic_dropdown"
+            android:drawableTint="#005BFF" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/uploadImageButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Загрузить изображение"/>
+        android:layout_height="48dp"
+        android:text="Загрузить изображение"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#005BFF"
+        android:textSize="12sp"
+        android:fontFamily="@font/montserratsemibold"
+        android:layout_marginBottom="8dp"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/ic_image"
+        app:iconTint="#FFFFFF"
+        app:iconGravity="start"
+        app:iconPadding="8dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/removeImageButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Удалить изображение"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#EC407A"
+        android:textSize="12sp"
+        android:fontFamily="@font/montserratsemibold"
+        android:layout_marginBottom="16dp"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/ic_delete"
+        app:iconTint="#FFFFFF"
+        app:iconGravity="start"
+        app:iconPadding="8dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="16dp"
-        android:gravity="end">
+        android:layout_marginTop="8dp">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/cancelButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Отмена"/>
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Отмена"
+            android:textColor="#005BFF"
+            android:backgroundTint="#E6F0FF"
+            android:textSize="16sp"
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/saveButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
             android:text="Сохранить"
-            android:layout_marginStart="8dp"/>
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#005BFF"
+            android:textSize="13sp"
+            android:fontFamily="@font/montserratsemibold"
+            app:cornerRadius="8dp"/>
     </LinearLayout>
 </LinearLayout>
