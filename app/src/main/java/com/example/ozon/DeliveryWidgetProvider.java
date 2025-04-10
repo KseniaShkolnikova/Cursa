@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -15,11 +16,13 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Locale;
+
 public class DeliveryWidgetProvider extends AppWidgetProvider {
     private static final String TAG = "DeliveryWidgetProvider";
     private static final String ACTION_UPDATE = "com.example.ozon.UPDATE_WIDGET";
     private static final Handler handler = new Handler(Looper.getMainLooper());
     private static Runnable updateRunnable;
+
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
@@ -27,6 +30,7 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
         }
         startUpdating(context);
     }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
@@ -39,29 +43,50 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
             }
         }
     }
+
     private void updateWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.delivery_widget);
+
         if (!isUserAuthenticated(context)) {
             views.setTextViewText(R.id.delivery_date, "Не авторизован");
             views.setTextViewText(R.id.time_remaining, "Войдите в приложение");
             appWidgetManager.updateAppWidget(appWidgetId, views);
             return;
         }
+
         SharedPreferences sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         String userId = sharedPrefs.getString("userId", null);
         String userRole = sharedPrefs.getString("userRole", null);
+
         if (userId == null || userId.isEmpty()) {
             views.setTextViewText(R.id.delivery_date, "Ошибка");
             views.setTextViewText(R.id.time_remaining, "Не удалось определить пользователя");
             appWidgetManager.updateAppWidget(appWidgetId, views);
             return;
         }
+
+        if ("seller".equals(userRole)) {
+            views.setTextViewText(R.id.delivery_date, "Вы продавец");
+            views.setTextViewText(R.id.time_remaining, "Управляйте заказами в приложении");
+            Intent intent = new Intent(context, OrderActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.putExtra("USER_DOCUMENT_ID", userId);
+            intent.putExtra("USER_ROLE", userRole);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            views.setOnClickPendingIntent(R.id.delivery_date, pendingIntent);
+            views.setOnClickPendingIntent(R.id.time_remaining, pendingIntent);
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+            return;
+        }
+
         if (!NetworkUtil.isNetworkAvailable(context)) {
             views.setTextViewText(R.id.delivery_date, "Нет интернета");
             views.setTextViewText(R.id.time_remaining, "Проверьте подключение");
             appWidgetManager.updateAppWidget(appWidgetId, views);
             return;
         }
+
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("orders")
                 .whereEqualTo("userId", userId)
@@ -110,6 +135,7 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                 });
     }
+
     private void startUpdating(final Context context) {
         if (updateRunnable != null) {
             handler.removeCallbacks(updateRunnable);
@@ -120,17 +146,19 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
                 Intent intent = new Intent(context, DeliveryWidgetProvider.class);
                 intent.setAction(ACTION_UPDATE);
                 context.sendBroadcast(intent);
-                handler.postDelayed(this, 60 * 1000);
+                handler.postDelayed(this, 6 * 1000);
             }
         };
         handler.post(updateRunnable);
     }
+
     @Override
     public void onDisabled(Context context) {
         if (updateRunnable != null) {
             handler.removeCallbacks(updateRunnable);
         }
     }
+
     private boolean isUserAuthenticated(Context context) {
         SharedPreferences sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         boolean isLoggedIn = sharedPrefs.getBoolean("isLoggedIn", false);

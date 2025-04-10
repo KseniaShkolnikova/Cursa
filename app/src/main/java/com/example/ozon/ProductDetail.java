@@ -87,8 +87,7 @@ public class ProductDetail extends Fragment {
             addToCartButton.setText("Нет в наличии");
         } else {
             addToCartButton.setEnabled(true);
-            addToCartButton.setBackgroundColor(getResources().getColor(R.color.highlight_color));
-            addToCartButton.setText("В корзину");
+            addToCartButton.setBackgroundColor(getResources().getColor(R.color.button_color));
         }
     }
     private void loadStoreName(String sellerId) {
@@ -133,7 +132,7 @@ public class ProductDetail extends Fragment {
                                 return;
                             }
                             FirebaseFirestore.getInstance().collection("cart")
-                                    .document(cartItemId) // Use the new ID format
+                                    .document(cartItemId)
                                     .update("quantity", currentQuantity + 1)
 
                                     .addOnFailureListener(e -> {
@@ -143,7 +142,7 @@ public class ProductDetail extends Fragment {
                             if (availableQuantity > 0) {
                                 Cart cart = new Cart(documentId, name, price.intValue(), 1, imageBase64, userDocumentId);
                                 FirebaseFirestore.getInstance().collection("cart")
-                                        .document(cartItemId) // Use the new ID format
+                                        .document(cartItemId)
                                         .set(cart)
                                         .addOnFailureListener(e -> {
                                             Toast.makeText(getContext(), "Ошибка при добавлении в корзину", Toast.LENGTH_SHORT).show();

@@ -1,8 +1,11 @@
 package com.example.ozon;
+
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +29,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,6 +41,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
+
 public class SellerProfileActivity extends Fragment {
     private TextView tvSellerName, tvSellerLogin, tvSellerShop, tvSellerOGRNIP, tvSellerINN;
     private ImageView btnMenu;
@@ -48,6 +53,8 @@ public class SellerProfileActivity extends Fragment {
     private static final Pattern SPECIAL_CHAR_PATTERN = Pattern.compile("[!@#$%^&*(),.?\":{}|<>]");
     private Map<String, String> productIdToNameMap = new HashMap<>();
     private Map<String, List<ProductRevenue>> productRevenueMap = new HashMap<>();
+    private List<Order> cachedOrders;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -77,13 +84,20 @@ public class SellerProfileActivity extends Fragment {
     }
 
     private void loadSellerProducts() {
-        if (userDocumentId == null) {
+        if (!isAdded() || userDocumentId == null) {
             return;
         }
+        revenueChart.clear();
+        revenueChart.setNoDataText("График выгружается...");
+        revenueChart.invalidate();
+
         db.collection("products")
                 .whereEqualTo("sellerId", userDocumentId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!isAdded()) {
+                        return;
+                    }
                     productIds.clear();
                     productIdToNameMap.clear();
                     if (queryDocumentSnapshots.isEmpty()) {
@@ -104,26 +118,36 @@ public class SellerProfileActivity extends Fragment {
                     if (!productIds.isEmpty()) {
                         loadOrdersData();
                     } else {
+                        revenueChart.clear();
+                        revenueChart.setNoDataText("Нет товаров для отображения");
+                        revenueChart.invalidate();
                         Toast.makeText(requireContext(), "Нет товаров для отображения", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Ошибка загрузки товаров: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(), "Ошибка загрузки товаров: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        revenueChart.clear();
+                        revenueChart.setNoDataText("Ошибка загрузки данных");
+                        revenueChart.invalidate();
+                    }
                 });
     }
+
     private void loadSellerData() {
-        if (userDocumentId == null) {
+        if (!isAdded() || userDocumentId == null) {
             Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
             return;
         }
         db.collection("users").document(userDocumentId)
                 .get()
                 .addOnCompleteListener(task -> {
+                    if (!isAdded()) {
+                        return;
+                    }
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
-                            for (Map.Entry<String, Object> entry : document.getData().entrySet()) {
-                            }
                             if (userRole == null || !userRole.equals("seller")) {
                                 Toast.makeText(requireContext(), "Доступ запрещен: вы не продавец", Toast.LENGTH_SHORT).show();
                                 Intent intent = new Intent(requireContext(), MainActivity.class);
@@ -160,14 +184,31 @@ public class SellerProfileActivity extends Fragment {
     }
 
     private void loadOrdersData() {
+        if (!isAdded()) {
+            return;
+        }
+        if (cachedOrders != null) {
+            processOrdersData(cachedOrders);
+            return;
+        }
+        revenueChart.clear();
+        revenueChart.setNoDataText("График выгружается...");
+        revenueChart.invalidate();
+
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, -14);
         Date startDate = calendar.getTime();
         db.collection("orders")
                 .whereGreaterThanOrEqualTo("orderDate", startDate)
+                .orderBy("orderDate", Query.Direction.ASCENDING)
+                .limit(50)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!isAdded()) {
+                        return;
+                    }
                     productRevenueMap.clear();
+                    cachedOrders = new ArrayList<>();
                     if (queryDocumentSnapshots.isEmpty()) {
                         Toast.makeText(requireContext(), "Нет заказов за последние 14 дней", Toast.LENGTH_SHORT).show();
                         if (!productIds.isEmpty()) {
@@ -175,116 +216,181 @@ public class SellerProfileActivity extends Fragment {
                         }
                         return;
                     }
-                    int orderCount = 0;
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        orderCount++;
-                        List<Map<String, Object>> products = (List<Map<String, Object>>) document.get("products");
-                        if (products == null || products.isEmpty()) {
-                            continue;
-                        }
-                        Date orderDate = document.getDate("orderDate");
-                        if (orderDate == null) {
-                            continue;
-                        }
-                        for (Map<String, Object> product : products) {
-                            String productId = (String) product.get("productId");
-                            Object quantityObj = product.get("quantity");
-                            Object priceObj = product.get("price");
-                            if (productId == null || quantityObj == null || priceObj == null) {
-                                continue;
-                            }
-                            if (!productIds.contains(productId)) {
-                                continue;
-                            }
-                            long quantity, price;
-                            try {
-                                quantity = (quantityObj instanceof Long) ? (Long) quantityObj : Long.parseLong(quantityObj.toString());
-                                price = (priceObj instanceof Long) ? (Long) priceObj : Long.parseLong(priceObj.toString());
-                            } catch (NumberFormatException e) {
-                                continue;
-                            }
-                            long revenue = quantity * price;
-                            productRevenueMap.putIfAbsent(productId, new ArrayList<>());
-                            productRevenueMap.get(productId).add(new ProductRevenue(orderDate, revenue));
-                        }
+                        Order order = document.toObject(Order.class);
+                        order.setId(document.getId());
+                        cachedOrders.add(order);
                     }
-                    if (!productIds.isEmpty()) {
-                        updateChart(productIds.get(0));
-                    } else {
-                        Toast.makeText(requireContext(), "Нет данных о заказах для ваших товаров", Toast.LENGTH_SHORT).show();
-                    }
+                    processOrdersData(cachedOrders);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Ошибка загрузки заказов: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(), "Ошибка загрузки заказов: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        revenueChart.clear();
+                        revenueChart.setNoDataText("Ошибка загрузки данных");
+                        revenueChart.invalidate();
+                    }
                 });
     }
-    private void setupProductSpinner() {
-        if (productIds.isEmpty()) {
-            productSpinner.setEnabled(false);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                    android.R.layout.simple_spinner_item, new ArrayList<>());
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            productSpinner.setAdapter(adapter);
-            revenueChart.clear();
-            revenueChart.setNoDataText("Нет товаров для отображения");
+
+    private void processOrdersData(List<Order> orders) {
+        if (!isAdded()) {
             return;
         }
-        List<String> productNames = new ArrayList<>();
-        for (String productId : productIds) {
-            String productName = productIdToNameMap.get(productId);
-            productNames.add(productName != null ? productName : productId);
+        revenueChart.clear();
+        revenueChart.setNoDataText("График выгружается...");
+        revenueChart.invalidate();
+
+        productRevenueMap.clear();
+        for (Order order : orders) {
+            List<Map<String, Object>> products = order.getProducts();
+            if (products == null || products.isEmpty()) {
+                continue;
+            }
+            Date orderDate = order.getOrderDate();
+            if (orderDate == null) {
+                continue;
+            }
+            for (Map<String, Object> product : products) {
+                String productId = (String) product.get("productId");
+                Object quantityObj = product.get("quantity");
+                Object priceObj = product.get("price");
+                if (productId == null || quantityObj == null || priceObj == null) {
+                    continue;
+                }
+                if (!productIds.contains(productId)) {
+                    continue;
+                }
+                long quantity = (quantityObj instanceof Long) ? (Long) quantityObj : Long.parseLong(quantityObj.toString());
+                long price = (priceObj instanceof Long) ? (Long) priceObj : Long.parseLong(priceObj.toString());
+                long revenue = quantity * price;
+                productRevenueMap.putIfAbsent(productId, new ArrayList<>());
+                productRevenueMap.get(productId).add(new ProductRevenue(orderDate, revenue));
+            }
         }
-        productSpinner.setEnabled(true);
+        if (!productIds.isEmpty()) {
+            updateChart(productIds.get(0));
+        } else {
+            updateChart(null);
+        }
+    }
+
+    private void setupProductSpinner() {
+        if (!isAdded()) {
+            return;
+        }
+        List<String> spinnerItems = new ArrayList<>();
+        if (productIds.isEmpty()) {
+            spinnerItems.add("Нет");
+            productSpinner.setEnabled(false);
+            revenueChart.clear();
+            revenueChart.setNoDataText("Нет товаров для отображения");
+            revenueChart.invalidate();
+        } else {
+            for (String productId : productIds) {
+                String productName = productIdToNameMap.get(productId);
+                spinnerItems.add(productName != null ? productName : productId);
+            }
+            productSpinner.setEnabled(true);
+        }
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_spinner_item, productNames);
+                android.R.layout.simple_spinner_item, spinnerItems);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         productSpinner.setAdapter(adapter);
+
         productSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedProductId = productIds.get(position);
-                updateChart(selectedProductId);
+                if (!isAdded()) {
+                    return;
+                }
+                if (productIds.isEmpty()) {
+                    updateChart(null);
+                } else {
+                    String selectedProductId = productIds.get(position);
+                    updateChart(selectedProductId);
+                }
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
     }
+
     private void updateChart(String productId) {
+        if (!isAdded()) {
+            return;
+        }
+
+        if (productId == null) {
+            revenueChart.clear();
+            revenueChart.setNoDataText("Нет товаров для отображения");
+            revenueChart.invalidate();
+            return;
+        }
+
         List<ProductRevenue> revenues = productRevenueMap.get(productId);
         if (revenues == null || revenues.isEmpty()) {
             revenueChart.clear();
-            revenueChart.setNoDataText("Нет данных для продукта: " + productId);
+            revenueChart.setNoDataText("Загрузка");
+            revenueChart.invalidate();
+
+            Handler handler = new Handler(Looper.getMainLooper());
+            Runnable timeoutRunnable = () -> {
+                if (isAdded()) {
+                    revenueChart.clear();
+                    revenueChart.setNoDataText("Нет данных для товара");
+                    revenueChart.invalidate();
+                }
+            };
+            handler.postDelayed(timeoutRunnable, 10 * 1000);
+
             return;
         }
+
         List<Entry> entries = new ArrayList<>();
         Map<Integer, Long> dailyRevenue = new HashMap<>();
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, -14);
         Date startDate = calendar.getTime();
         int daysInPeriod = 14;
-        for (int i = 1; i <= daysInPeriod; i++) {
+
+        for (int i = 0; i < daysInPeriod; i++) {
             dailyRevenue.put(i, 0L);
         }
+
         for (ProductRevenue revenue : revenues) {
-            try {
-                long diffInMillis = revenue.date.getTime() - startDate.getTime();
-                int dayIndex = (int) (diffInMillis / (1000 * 60 * 60 * 24)) + 1;
-                if (dayIndex < 1 || dayIndex > daysInPeriod) {
-                    continue;
-                }
+            long diffInMillis = revenue.date.getTime() - startDate.getTime();
+            int dayIndex = (int) (diffInMillis / (1000 * 60 * 60 * 24));
+            if (dayIndex >= 0 && dayIndex < daysInPeriod) {
                 dailyRevenue.put(dayIndex, dailyRevenue.get(dayIndex) + revenue.revenue);
-            } catch (Exception e) {
             }
         }
-        for (int i = 1; i <= daysInPeriod; i++) {
+
+        for (int i = 0; i < daysInPeriod; i++) {
             entries.add(new Entry(i, dailyRevenue.get(i)));
         }
+
         if (entries.isEmpty()) {
             revenueChart.clear();
-            revenueChart.setNoDataText("Нет данных для отображения");
+            revenueChart.setNoDataText("Загрузка");
+            revenueChart.invalidate();
+
+            Handler handler = new Handler(Looper.getMainLooper());
+            Runnable timeoutRunnable = () -> {
+                if (isAdded()) {
+                    revenueChart.clear();
+                    revenueChart.setNoDataText("Нет данных для товара");
+                    revenueChart.invalidate();
+                }
+            };
+            handler.postDelayed(timeoutRunnable, 10 * 1000); 
+
             return;
         }
+
         LineDataSet dataSet = new LineDataSet(entries, "Выручка (руб.)");
         dataSet.setColor(getResources().getColor(android.R.color.holo_blue_dark));
         dataSet.setValueTextSize(10f);
@@ -292,9 +398,11 @@ public class SellerProfileActivity extends Fragment {
         dataSet.setCircleColor(getResources().getColor(android.R.color.holo_blue_dark));
         dataSet.setLineWidth(2f);
         dataSet.setCircleRadius(4f);
-        dataSet.setDrawValues(true);
+        dataSet.setDrawValues(false);
+
         LineData lineData = new LineData(dataSet);
         revenueChart.setData(lineData);
+
         XAxis xAxis = revenueChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
@@ -304,10 +412,11 @@ public class SellerProfileActivity extends Fragment {
             public String getFormattedValue(float value) {
                 Calendar dateLabel = Calendar.getInstance();
                 dateLabel.setTime(startDate);
-                dateLabel.add(Calendar.DAY_OF_YEAR, (int) value - 1);
-                return new SimpleDateFormat("dd.MM", Locale.getDefault()).format(dateLabel.getTime());
+                dateLabel.add(Calendar.DAY_OF_YEAR, (int) value);
+                return new SimpleDateFormat("dd", Locale.getDefault()).format(dateLabel.getTime());
             }
         });
+
         revenueChart.getDescription().setEnabled(false);
         revenueChart.getAxisRight().setEnabled(false);
         revenueChart.getAxisLeft().setAxisMinimum(0f);
@@ -339,6 +448,7 @@ public class SellerProfileActivity extends Fragment {
         });
         popupMenu.show();
     }
+
     private void showConfirmPasswordDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.confirm_password_dialog, null);
         EditText etOldPassword = dialogView.findViewById(R.id.etOldPassword);
@@ -438,11 +548,13 @@ public class SellerProfileActivity extends Fragment {
         });
         dialog.show();
     }
+
     private String generateVerificationCode() {
         Random random = new Random();
         int code = 10000 + random.nextInt(90000);
         return String.valueOf(code);
     }
+
     private void sendPasswordRecoveryEmail(String email, String code) {
         String subject = "Восстановление пароля Ozon";
         String body = "<!DOCTYPE html>" +
@@ -500,6 +612,7 @@ public class SellerProfileActivity extends Fragment {
         });
         dialog.show();
     }
+
     private boolean validateNewPassword(String newPassword, String confirmPassword) {
         if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
@@ -531,8 +644,9 @@ public class SellerProfileActivity extends Fragment {
         }
         return true;
     }
+
     private void updatePassword(String newPassword) {
-        if (userDocumentId == null) {
+        if (!isAdded() || userDocumentId == null) {
             Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -545,6 +659,7 @@ public class SellerProfileActivity extends Fragment {
                     Toast.makeText(requireContext(), "Ошибка при изменении пароля: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
     private void showEditSellerDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.edit_sellet_profile_layout, null);
         EditText etEditLastName = dialogView.findViewById(R.id.etEditLastName);
@@ -616,8 +731,9 @@ public class SellerProfileActivity extends Fragment {
         }
         return true;
     }
+
     private void updateSellerData(String lastName, String firstName, String middleName, String storeName, String ogrnip, String inn) {
-        if (userDocumentId == null) {
+        if (!isAdded() || userDocumentId == null) {
             Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -638,8 +754,9 @@ public class SellerProfileActivity extends Fragment {
                     Toast.makeText(requireContext(), "Ошибка при обновлении данных: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
     private void deleteSellerAccount() {
-        if (userDocumentId == null) {
+        if (!isAdded() || userDocumentId == null) {
             Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -647,24 +764,30 @@ public class SellerProfileActivity extends Fragment {
                 .whereEqualTo("sellerId", userDocumentId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!isAdded()) {
+                        return;
+                    }
                     if (queryDocumentSnapshots.isEmpty()) {
                         deleteUserAccount();
                         return;
                     }
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String productId = document.getId();
-                        db.collection("products").document(productId)
-                                .delete();
-
+                        db.collection("products").document(productId).delete();
                     }
                     deleteUserAccount();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Ошибка при удалении товаров: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(), "Ошибка при удалении товаров: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 
     private void deleteUserAccount() {
+        if (!isAdded()) {
+            return;
+        }
         db.collection("users").document(userDocumentId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
@@ -686,7 +809,11 @@ public class SellerProfileActivity extends Fragment {
                     Toast.makeText(requireContext(), "Ошибка при удалении аккаунта: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
     private void logout() {
+        if (!isAdded()) {
+            return;
+        }
         SharedPreferences sharedPrefs = requireContext().getSharedPreferences("AppPrefs", requireContext().MODE_PRIVATE);
         sharedPrefs.edit()
                 .putBoolean("isLoggedIn", false)
@@ -701,12 +828,44 @@ public class SellerProfileActivity extends Fragment {
             getActivity().finish();
         }
     }
+
     private static class ProductRevenue {
         Date date;
         long revenue;
+
         ProductRevenue(Date date, long revenue) {
             this.date = date;
             this.revenue = revenue;
+        }
+    }
+
+    private static class Order {
+        private String id;
+        private Date orderDate;
+        private List<Map<String, Object>> products;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Date getOrderDate() {
+            return orderDate;
+        }
+
+        public void setOrderDate(Date orderDate) {
+            this.orderDate = orderDate;
+        }
+
+        public List<Map<String, Object>> getProducts() {
+            return products;
+        }
+
+        public void setProducts(List<Map<String, Object>> products) {
+            this.products = products;
         }
     }
 }

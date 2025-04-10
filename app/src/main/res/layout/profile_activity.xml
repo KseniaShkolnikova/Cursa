@@ -53,12 +53,21 @@
                     android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                     app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-                    <!-- Пустое пространство слева -->
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:visibility="invisible" />
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_user"
+                        android:tint="#EC407A"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Профиль"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="#EC407A"
+                        android:fontFamily="@font/montserratbold"/>
 
                     <!-- Иконка справа -->
                     <ImageView
