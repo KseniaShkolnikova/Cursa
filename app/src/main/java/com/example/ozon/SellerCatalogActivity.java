@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
+
+/**
+ * Класс SellerCatalogActivity представляет собой фрагмент для отображения каталога товаров
+ * продавца в приложении "OZON". Позволяет продавцу просматривать свои товары
+ * и переходить к детальной информации о каждом товаре.
+ */
 public class SellerCatalogActivity extends Fragment {
     private RecyclerView recyclerView;
     private ProductAdapter productAdapter;
@@ -22,6 +29,12 @@ public class SellerCatalogActivity extends Fragment {
     private String userDocumentId;
     private String userRole;
     private TextView emptyView;
+
+    /**
+     * Создает и возвращает представление фрагмента. Инициализирует элементы UI,
+     * извлекает данные о пользователе из аргументов, настраивает адаптер для списка товаров
+     * и загружает товары продавца.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.catalog_seller_layout, container, false);
@@ -50,6 +63,10 @@ public class SellerCatalogActivity extends Fragment {
         return view;
     }
 
+    /**
+     * Загружает список товаров продавца из Firebase Firestore. Обновляет адаптер данными
+     * и управляет видимостью списка товаров и сообщения об их отсутствии.
+     */
     private void loadProducts(String sellerId) {
         if (db == null || sellerId == null) {
             return;
@@ -81,6 +98,11 @@ public class SellerCatalogActivity extends Fragment {
         }).addOnFailureListener(e -> {
         });
     }
+
+    /**
+     * Открывает фрагмент с детальной информацией о товаре для продавца. Передает данные
+     * о товаре и пользователе в новый фрагмент и добавляет его в стек возврата.
+     */
     private void openProductDetailSeller(String productId, String userDocumentId, String userRole) {
         if (productId == null || userDocumentId == null || userRole == null) {
             return;
@@ -91,7 +113,6 @@ public class SellerCatalogActivity extends Fragment {
         bundle.putString("userDocumentId", userDocumentId);
         bundle.putString("userRole", userRole);
         productDetailSeller.setArguments(bundle);
-
         FragmentManager fragmentManager = getParentFragmentManager();
         if (fragmentManager != null) {
             FragmentTransaction transaction = fragmentManager.beginTransaction();

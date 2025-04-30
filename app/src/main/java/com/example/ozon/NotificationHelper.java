@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,11 +11,22 @@ import android.os.Build;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
+/**
+ * Класс NotificationHelper предоставляет утилитарные методы для создания канала уведомлений
+ * и отправки уведомлений в приложении "OZON". Использует Android Notification API
+ * для информирования пользователей о статусе заказов и доставки.
+ */
 public class NotificationHelper {
     private static final String TAG = "NotificationHelper";
     private static final String CHANNEL_ID = "order_delivery_channel";
     private static final String CHANNEL_NAME = "Order Delivery";
     private static final String CHANNEL_DESCRIPTION = "Notifications about order delivery status";
+
+    /**
+     * Создает канал уведомлений для приложения, если версия Android 8.0 (Oreo) или выше.
+     * Настраивает канал с высокой важностью для уведомлений о статусе доставки.
+     */
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
@@ -29,6 +41,11 @@ public class NotificationHelper {
             }
         }
     }
+
+    /**
+     * Отправляет уведомление о статусе заказа. Формирует уведомление с информацией о заказе,
+     * включая статус, сумму, способ оплаты и срок доставки, и отображает его пользователю.
+     */
     public static void sendOrderNotification(Context context, Order order, String orderId, String userId, String userRole) {
         try {
             Intent intent = new Intent(context, CustomerMainActivity.class);
@@ -69,6 +86,11 @@ public class NotificationHelper {
         } catch (Exception e) {
         }
     }
+
+    /**
+     * Отправляет уведомление о статусе доставки заказа. В зависимости от статуса доставки
+     * формирует сообщение о том, что заказ доставлен, или о количестве оставшихся дней до доставки.
+     */
     public static void sendDeliveryNotification(Context context, String orderId, boolean isDelivered, long remainingDays, String userId, String userRole) {
         try {
             Intent intent = new Intent(context, CustomerMainActivity.class);

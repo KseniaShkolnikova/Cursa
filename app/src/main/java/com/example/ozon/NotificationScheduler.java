@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -9,8 +10,20 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+
+/**
+ * Класс NotificationScheduler отвечает за планирование уведомлений о доставке
+ * в приложении "OZON". Использует AlarmManager для установки
+ * напоминаний и Firebase Firestore для проверки статуса уведомлений.
+ */
 public class NotificationScheduler {
     private static final String TAG = "NotificationScheduler";
+
+    /**
+     * Планирует напоминание о доставке заказа. Проверяет, было ли уведомление уже отправлено,
+     * и, если нет, устанавливает напоминание на день до предполагаемой даты доставки.
+     * Если дата доставки уже прошла, отправляет уведомление немедленно.
+     */
     @SuppressLint("ScheduleExactAlarm")
     public static void scheduleDeliveryReminder(Context context, Order order, String orderId, String userId, String userRole) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();

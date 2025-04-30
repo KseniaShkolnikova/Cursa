@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -16,6 +17,12 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+/**
+ * Класс RegistrationActivity представляет собой активность для регистрации нового пользователя
+ * в приложении "OZON". Позволяет пользователю ввести имя, email и пароль,
+ * а также перейти на экран входа или авторизации продавца.
+ */
 public class RegistrationActivity extends AppCompatActivity {
     private TextView loginLink;
     private TextView sellerAuthLink;
@@ -23,6 +30,11 @@ public class RegistrationActivity extends AppCompatActivity {
     private Button registerButton;
     private FirebaseFirestore db;
     private static final Pattern SPECIAL_CHAR_PATTERN = Pattern.compile("[!@#$%^&*(),.?\":{}|<>]");
+
+    /**
+     * Инициализирует активность. Устанавливает layout, инициализирует элементы UI,
+     * настраивает обработчики событий и применяет градиент к тексту логотипа.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +60,11 @@ public class RegistrationActivity extends AppCompatActivity {
         TextView logoText = findViewById(R.id.logoText);
         applyTextGradient(logoText);
     }
+
+    /**
+     * Применяет градиентный эффект к тексту. Использует LinearGradient для создания
+     * цветового перехода от синего к розовому.
+     */
     private void applyTextGradient(TextView textView) {
         textView.post(() -> {
             float width = textView.getPaint().measureText(textView.getText().toString());
@@ -63,6 +80,11 @@ public class RegistrationActivity extends AppCompatActivity {
             textView.invalidate();
         });
     }
+
+    /**
+     * Выполняет регистрацию пользователя. Проверяет введенные данные и, если они корректны,
+     * проверяет уникальность email перед сохранением данных в Firebase Firestore.
+     */
     private void registerUser(String login, String password, String name) {
         if (name.isEmpty()) {
             Toast.makeText(this, "Заполните имя", Toast.LENGTH_SHORT).show();
@@ -90,6 +112,11 @@ public class RegistrationActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    /**
+     * Проверяет корректность введенного логина (email). Убеждается, что email не пустой,
+     * содержит минимум 5 символов и соответствует формату email.
+     */
     private boolean validateLogin(String login) {
         if (login.isEmpty()) {
             Toast.makeText(this, "Заполните логин (email)", Toast.LENGTH_SHORT).show();
@@ -99,12 +126,17 @@ public class RegistrationActivity extends AppCompatActivity {
             Toast.makeText(this, "Email должен содержать минимум 8 символов", Toast.LENGTH_SHORT).show();
             return false;
         }
-        if (!Patterns.EMAIL_ADDRESS.matcher(login).matches()){
+        if (!Patterns.EMAIL_ADDRESS.matcher(login).matches()) {
             Toast.makeText(this, "Неверный формат почты", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
     }
+
+    /**
+     * Проверяет корректность введенного пароля. Убеждается, что пароль соответствует требованиям
+     * по длине, наличию заглавных и строчных букв, цифр и специальных символов.
+     */
     private boolean validatePassword(String password) {
         if (password.isEmpty()) {
             Toast.makeText(this, "Заполните пароль", Toast.LENGTH_SHORT).show();
@@ -132,6 +164,11 @@ public class RegistrationActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    /**
+     * Сохраняет данные нового пользователя в Firebase Firestore. После успешной регистрации
+     * сохраняет данные авторизации и перенаправляет на главный экран покупателя.
+     */
     private void performRegistration(String login, String password, String name) {
         Map<String, Object> user = new HashMap<>();
         user.put("name", name);
@@ -153,6 +190,11 @@ public class RegistrationActivity extends AppCompatActivity {
                     Toast.makeText(this, "Ошибка при регистрации: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Сохраняет данные авторизации пользователя в SharedPreferences. Сохраняет ID пользователя,
+     * роль и статус входа.
+     */
     private void saveUserAuthData(String userDocumentId, String userRole) {
         SharedPreferences sharedPrefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();

@@ -261,7 +261,7 @@
                 android:importantForAccessibility="yes"
                 android:textAlignment="center"
                 android:padding="8dp"
-                android:text="ЗУже есть аккаунт? Войти как покупатель"
+                android:text="Уже есть аккаунт? Войти как покупатель"
                 android:textColor="#42A5F5"
                 android:textSize="14sp" />
 

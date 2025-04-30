@@ -1,9 +1,22 @@
 package com.example.ozon;
+
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+/**
+ * Класс SellerMainActivity представляет собой основную активность для продавца
+ * в приложении "OZON". Управляет навигацией между фрагментами
+ * каталога, создания товара и профиля продавца через нижнюю панель навигации.
+ */
 public class SellerMainActivity extends AppCompatActivity {
+
+    /**
+     * Инициализирует активность. Устанавливает layout, извлекает данные о пользователе
+     * из Intent, настраивает нижнюю панель навигации и отображает фрагмент каталога
+     * по умолчанию при первом запуске.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

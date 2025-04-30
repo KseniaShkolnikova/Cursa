@@ -1,4 +1,3 @@
-<!-- res/drawable/card_background_shadow.xml -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid android:color="#FFFFFF"/>
     <corners android:radius="12dp"/>

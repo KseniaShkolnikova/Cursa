@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -22,6 +23,13 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Random;
 import java.util.regex.Pattern;
+
+/**
+ * Класс MainActivity представляет собой главную активность приложения "OZON".
+ * Отвечает за авторизацию пользователя, предоставляет возможность регистрации, входа для продавцов
+ * и восстановления пароля. Использует Firebase Firestore для проверки учетных данных и управления
+ * пользователями.
+ */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private TextView registerLink, sellerAuthLink, forgotPasswordLink;
@@ -29,6 +37,12 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private SharedPreferences sharedPrefs;
     private static final Pattern SPECIAL_CHAR_PATTERN = Pattern.compile("[!@#$%^&*(),.?\":{}|<>]");
+
+    /**
+     * Инициализирует активность авторизации. Проверяет, авторизован ли пользователь, и перенаправляет
+     * его в соответствующую активность в зависимости от роли. Если пользователь не авторизован,
+     * отображает экран входа, настраивает элементы UI и запрашивает разрешение на уведомления.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +79,11 @@ public class MainActivity extends AppCompatActivity {
             requestNotificationPermission();
         }
     }
+
+    /**
+     * Применяет градиентный эффект к тексту логотипа. Использует LinearGradient для создания
+     * плавного перехода цветов от синего к розовому.
+     */
     private void applyTextGradient(TextView textView) {
         textView.post(() -> {
             float width = textView.getPaint().measureText(textView.getText().toString());
@@ -77,6 +96,11 @@ public class MainActivity extends AppCompatActivity {
             textView.invalidate();
         });
     }
+
+    /**
+     * Инициализирует элементы UI, такие как поля ввода логина и пароля, ссылки для регистрации,
+     * входа продавца и восстановления пароля, а также подключается к Firebase Firestore.
+     */
     private void initializeViews() {
         db = FirebaseFirestore.getInstance();
         loginField = findViewById(R.id.loginField);
@@ -85,18 +109,31 @@ public class MainActivity extends AppCompatActivity {
         sellerAuthLink = findViewById(R.id.sellerAuthLink);
         forgotPasswordLink = findViewById(R.id.forgotPasswordLink);
     }
+
+    /**
+     * Настраивает обработчики событий для ссылок и кнопки входа. Позволяет переходить на экраны
+     * регистрации, авторизации продавца, восстановления пароля и выполнять вход.
+     */
     private void setupClickListeners() {
         registerLink.setOnClickListener(v -> startActivity(new Intent(this, RegistrationActivity.class)));
         sellerAuthLink.setOnClickListener(v -> startActivity(new Intent(this, AutorizationForSellerActivity.class)));
         forgotPasswordLink.setOnClickListener(v -> showForgotPasswordDialog());
         findViewById(R.id.loginButton).setOnClickListener(v -> loginUser());
     }
+
+    /**
+     * Запрашивает разрешение на отправку уведомлений для устройств с Android 13 и выше.
+     */
     private void requestNotificationPermission() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
         }
     }
 
+    /**
+     * Обрабатывает результат запроса разрешения на уведомления. Если разрешение не предоставлено,
+     * отображает сообщение с просьбой включить уведомления в настройках.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -107,6 +144,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**
+     * Выполняет авторизацию пользователя. Проверяет введенные email и пароль, отправляет запрос
+     * в Firebase Firestore для поиска пользователя. В случае успеха сохраняет данные авторизации
+     * и перенаправляет пользователя в соответствующую активность.
+     */
     private void loginUser() {
         String email = loginField.getText().toString().trim();
         String password = passwordField.getText().toString().trim();
@@ -160,6 +203,11 @@ public class MainActivity extends AppCompatActivity {
                     });
         }).start();
     }
+
+    /**
+     * Сохраняет данные авторизации пользователя в SharedPreferences, включая идентификатор,
+     * роль и статус авторизации. Отображает сообщение об ошибке, если сохранение не удалось.
+     */
     private void saveLoginData(String userId, String role) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putBoolean("isLoggedIn", true);
@@ -171,6 +219,11 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Ошибка сохранения данных", Toast.LENGTH_SHORT).show();
         }
     }
+
+    /**
+     * Запускает основную активность для покупателя, передавая идентификатор пользователя
+     * и его роль. Проверяет корректность идентификатора перед запуском.
+     */
     private void startCustomerMainActivity(String userId) {
         if (userId == null || userId.isEmpty()) {
             Toast.makeText(this, "Ошибка: ID пользователя не определен", Toast.LENGTH_LONG).show();
@@ -182,6 +235,11 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
+    /**
+     * Отображает диалоговое окно для восстановления пароля. Позволяет пользователю ввести
+     * email, получить код подтверждения и ввести его для перехода к смене пароля.
+     */
     private void showForgotPasswordDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.password_recovery, null);
@@ -198,6 +256,11 @@ public class MainActivity extends AppCompatActivity {
         changePasswordButton.setOnClickListener(v -> handleChangePassword(emailField, codeField, generatedCode, dialog));
         dialog.show();
     }
+
+    /**
+     * Обрабатывает запрос на отправку кода для восстановления пароля. Проверяет существование
+     * пользователя с указанным email в Firebase Firestore, генерирует код и отправляет его на email.
+     */
     private void handleSendCode(EditText emailField, Button changePasswordButton, String[] generatedCode) {
         String email = emailField.getText().toString().trim();
         if (email.isEmpty()) {
@@ -219,9 +282,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Ошибка при проверке email" , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Ошибка при проверке email", Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Обрабатывает подтверждение кода для восстановления пароля. Проверяет введенный код
+     * и, если он верный, открывает диалоговое окно для смены пароля.
+     */
     private void handleChangePassword(EditText emailField, EditText codeField, String[] generatedCode, AlertDialog dialog) {
         String email = emailField.getText().toString().trim();
         String enteredCode = codeField.getText().toString().trim();
@@ -236,6 +304,11 @@ public class MainActivity extends AppCompatActivity {
             showChangePasswordDialog(email);
         }
     }
+
+    /**
+     * Отправляет email с кодом для восстановления пароля. Формирует HTML-сообщение с кодом
+     * и отправляет его через SendEmailTask.
+     */
     private void sendPasswordRecoveryEmail(String email, String code) {
         String subject = "Восстановление пароля Ozon";
         String body = "<!DOCTYPE html>" +
@@ -274,6 +347,11 @@ public class MainActivity extends AppCompatActivity {
                 "</html>";
         new SendEmailTask(this, email, subject, body, true).execute();
     }
+
+    /**
+     * Отображает диалоговое окно для смены пароля. Позволяет пользователю ввести новый пароль
+     * и подтвердить его, после чего вызывает метод для обновления пароля.
+     */
     private void showChangePasswordDialog(String email) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.change_password_layout, null);
@@ -285,6 +363,11 @@ public class MainActivity extends AppCompatActivity {
         savePasswordButton.setOnClickListener(v -> updatePassword(email, newPasswordField, confirmPasswordField, dialog));
         dialog.show();
     }
+
+    /**
+     * Обновляет пароль пользователя в Firebase Firestore. Проверяет введенные данные,
+     * и если они валидны, обновляет пароль в базе данных и закрывает диалоговое окно.
+     */
     private void updatePassword(String email, EditText newPasswordField, EditText confirmPasswordField, AlertDialog dialog) {
         String newPassword = newPasswordField.getText().toString().trim();
         String confirmPassword = confirmPasswordField.getText().toString().trim();
@@ -308,6 +391,11 @@ public class MainActivity extends AppCompatActivity {
                     });
         }
     }
+
+    /**
+     * Проверяет корректность нового пароля. Убеждается, что пароли совпадают, соответствуют
+     * минимальной длине и содержат заглавные и строчные буквы, цифры и специальные символы.
+     */
     private boolean validateNewPassword(String newPassword, String confirmPassword) {
         if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
@@ -339,6 +427,10 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    /**
+     * Генерирует случайный пятизначный код для восстановления пароля.
+     */
     private String generateVerificationCode() {
         return String.valueOf(10000 + new Random().nextInt(90000));
     }

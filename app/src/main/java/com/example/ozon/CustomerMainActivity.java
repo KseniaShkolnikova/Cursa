@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -18,6 +19,13 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+/**
+ * Класс CustomerMainActivity представляет собой основную активность для покупателя
+ * в приложении "OZON". Обеспечивает навигацию между фрагментами каталога,
+ * корзины и профиля через нижнее меню. Управляет заказами пользователя, периодически
+ * обновляя их статус и отправляя уведомления о доставке с использованием Firebase Firestore.
+ */
 public class CustomerMainActivity extends AppCompatActivity {
     private static final String TAG = "CustomerMainActivity";
     private FirebaseFirestore db;
@@ -26,6 +34,12 @@ public class CustomerMainActivity extends AppCompatActivity {
     private Handler handler;
     private Runnable recalculateRunnable;
     private static final long RECALCULATE_INTERVAL = 6 * 1000;
+
+    /**
+     * Инициализирует активность покупателя. Настраивает нижнее меню навигации для переключения
+     * между фрагментами (каталог, корзина, профиль), запрашивает разрешение на уведомления,
+     * инициирует периодическое обновление статуса заказов и отправку уведомлений.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +90,11 @@ public class CustomerMainActivity extends AppCompatActivity {
             Toast.makeText(this, "Нет подключения к интернету", Toast.LENGTH_LONG).show();
         }
     }
+
+    /**
+     * Запускает периодическое обновление статуса заказов пользователя с заданным интервалом.
+     * Проверяет наличие интернет-соединения перед каждым обновлением.
+     */
     private void startPeriodicRecalculation() {
         handler = new Handler(Looper.getMainLooper());
         recalculateRunnable = new Runnable() {
@@ -89,6 +108,12 @@ public class CustomerMainActivity extends AppCompatActivity {
         };
         handler.post(recalculateRunnable);
     }
+
+    /**
+     * Загружает и обновляет статусы заказов пользователя из Firebase Firestore. Проверяет
+     * заказы со статусами "создан", "в процессе" и "доставлен", и обновляет их в зависимости
+     * от времени, прошедшего с момента создания.
+     */
     private void recalculateUserOrders() {
         if (userDocumentId == null || userDocumentId.isEmpty()) {
             return;
@@ -104,13 +129,18 @@ public class CustomerMainActivity extends AppCompatActivity {
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         try {
                             checkAndUpdateOrder(doc);
-                        }catch (Exception e){}
+                        } catch (Exception e) {}
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Ошибка загрузки заказов: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
+
+    /**
+     * Проверяет и обновляет статус конкретного заказа. Рассчитывает оставшееся время доставки
+     * на основе даты создания заказа и начального срока доставки. Обновляет статус заказа
+     * на "доставлен", если срок истек, и отправляет уведомление пользователю.
+     */
     @SuppressLint("MissingPermission")
     private void checkAndUpdateOrder(DocumentSnapshot doc) {
         try {
@@ -159,6 +189,11 @@ public class CustomerMainActivity extends AppCompatActivity {
         } catch (Exception e) {
         }
     }
+
+    /**
+     * Обновляет данные заказа в Firebase Firestore и отправляет уведомление пользователю
+     * о статусе доставки. Вызывает OrderManager для локального управления заказом.
+     */
     private void updateOrderInFirestore(Order order, String orderId, boolean isDelivered, long remainingDays) {
         db.collection("orders").document(orderId)
                 .set(order)
@@ -167,6 +202,12 @@ public class CustomerMainActivity extends AppCompatActivity {
                     NotificationHelper.sendDeliveryNotification(this, orderId, isDelivered, remainingDays, userDocumentId, "customer");
                 });
     }
+
+    /**
+     * Обрабатывает результат запроса разрешения на отправку уведомлений. Если разрешение
+     * получено, инициирует обновление заказов, иначе отображает сообщение о невозможности
+     * отправки уведомлений.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -178,6 +219,11 @@ public class CustomerMainActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**
+     * Вызывается при уничтожении активности. Останавливает периодическое обновление
+     * статуса заказов, чтобы избежать утечек памяти.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();

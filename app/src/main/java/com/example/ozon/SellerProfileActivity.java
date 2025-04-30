@@ -42,6 +42,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
+/**
+ * Класс SellerProfileActivity представляет собой фрагмент для отображения профиля продавца
+ * в приложении "OZON". Позволяет продавцу просматривать свои данные,
+ * график выручки по товарам, редактировать профиль, изменять пароль и удалять аккаунт.
+ */
 public class SellerProfileActivity extends Fragment {
     private TextView tvSellerName, tvSellerLogin, tvSellerShop, tvSellerOGRNIP, tvSellerINN;
     private ImageView btnMenu;
@@ -55,6 +60,11 @@ public class SellerProfileActivity extends Fragment {
     private Map<String, List<ProductRevenue>> productRevenueMap = new HashMap<>();
     private List<Order> cachedOrders;
 
+    /**
+     * Создает и возвращает представление фрагмента. Инициализирует элементы UI,
+     * извлекает данные о пользователе из аргументов, загружает данные продавца и товаров,
+     * а также настраивает меню действий.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -83,6 +93,10 @@ public class SellerProfileActivity extends Fragment {
         }
     }
 
+    /**
+     * Загружает список товаров продавца из Firebase Firestore. Подготавливает данные
+     * для отображения в выпадающем списке и на графике выручки.
+     */
     private void loadSellerProducts() {
         if (!isAdded() || userDocumentId == null) {
             return;
@@ -134,6 +148,10 @@ public class SellerProfileActivity extends Fragment {
                 });
     }
 
+    /**
+     * Загружает данные продавца из Firebase Firestore. Обновляет UI с информацией
+     * о продавце, включая имя, email, название магазина, ОГРНИП и ИНН.
+     */
     private void loadSellerData() {
         if (!isAdded() || userDocumentId == null) {
             Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
@@ -183,6 +201,10 @@ public class SellerProfileActivity extends Fragment {
                 });
     }
 
+    /**
+     * Загружает данные о заказах за последние 14 дней из Firebase Firestore.
+     * Использует кэшированные данные, если они доступны, и вызывает обработку заказов.
+     */
     private void loadOrdersData() {
         if (!isAdded()) {
             return;
@@ -233,6 +255,10 @@ public class SellerProfileActivity extends Fragment {
                 });
     }
 
+    /**
+     * Обрабатывает данные о заказах. Вычисляет выручку по каждому товару и обновляет график
+     * для первого товара в списке или выбранного товара.
+     */
     private void processOrdersData(List<Order> orders) {
         if (!isAdded()) {
             return;
@@ -275,6 +301,10 @@ public class SellerProfileActivity extends Fragment {
         }
     }
 
+    /**
+     * Настраивает выпадающий список товаров. Заполняет его названиями товаров и
+     * устанавливает обработчик выбора товара для обновления графика.
+     */
     private void setupProductSpinner() {
         if (!isAdded()) {
             return;
@@ -319,6 +349,10 @@ public class SellerProfileActivity extends Fragment {
         });
     }
 
+    /**
+     * Обновляет график выручки для выбранного товара. Отображает данные о выручке
+     * за последние 14 дней или сообщение об отсутствии данных.
+     */
     private void updateChart(String productId) {
         if (!isAdded()) {
             return;
@@ -386,7 +420,7 @@ public class SellerProfileActivity extends Fragment {
                     revenueChart.invalidate();
                 }
             };
-            handler.postDelayed(timeoutRunnable, 10 * 1000); 
+            handler.postDelayed(timeoutRunnable, 10 * 1000);
 
             return;
         }
@@ -427,6 +461,10 @@ public class SellerProfileActivity extends Fragment {
         revenueChart.invalidate();
     }
 
+    /**
+     * Отображает всплывающее меню с действиями продавца, такими как редактирование профиля,
+     * смена пароля, удаление аккаунта и выход из системы.
+     */
     private void showSellerActionsMenu(View view) {
         PopupMenu popupMenu = new PopupMenu(requireContext(), view);
         popupMenu.getMenuInflater().inflate(R.menu.seller_profile_menu, popupMenu.getMenu());
@@ -449,6 +487,10 @@ public class SellerProfileActivity extends Fragment {
         popupMenu.show();
     }
 
+    /**
+     * Отображает диалоговое окно для подтверждения старого пароля перед его изменением.
+     * Проверяет введенный пароль и открывает диалог смены пароля при успехе.
+     */
     private void showConfirmPasswordDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.confirm_password_dialog, null);
         EditText etOldPassword = dialogView.findViewById(R.id.etOldPassword);
@@ -495,6 +537,10 @@ public class SellerProfileActivity extends Fragment {
         dialog.show();
     }
 
+    /**
+     * Отображает диалоговое окно для восстановления пароля. Отправляет код на email продавца
+     * и позволяет ввести код для смены пароля.
+     */
     private void showForgotPasswordDialog(String email) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.password_recovery, null);
@@ -549,12 +595,19 @@ public class SellerProfileActivity extends Fragment {
         dialog.show();
     }
 
+    /**
+     * Генерирует случайный пятизначный код для восстановления пароля.
+     */
     private String generateVerificationCode() {
         Random random = new Random();
         int code = 10000 + random.nextInt(90000);
         return String.valueOf(code);
     }
 
+    /**
+     * Отправляет email с кодом для восстановления пароля. Формирует HTML-сообщение с кодом
+     * и отправляет его через SendEmailTask.
+     */
     private void sendPasswordRecoveryEmail(String email, String code) {
         String subject = "Восстановление пароля Ozon";
         String body = "<!DOCTYPE html>" +
@@ -594,6 +647,10 @@ public class SellerProfileActivity extends Fragment {
         new SendEmailTask(requireContext(), email, subject, body, true).execute();
     }
 
+    /**
+     * Отображает диалоговое окно для смены пароля. Позволяет продавцу ввести новый пароль
+     * и подтвердить его.
+     */
     private void showChangePasswordDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.change_password_layout, null);
         EditText newPasswordField = dialogView.findViewById(R.id.newPasswordField);
@@ -613,6 +670,10 @@ public class SellerProfileActivity extends Fragment {
         dialog.show();
     }
 
+    /**
+     * Проверяет корректность нового пароля. Убеждается, что пароль соответствует требованиям
+     * по длине, наличию заглавных и строчных букв, цифр и специальных символов.
+     */
     private boolean validateNewPassword(String newPassword, String confirmPassword) {
         if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
@@ -645,6 +706,9 @@ public class SellerProfileActivity extends Fragment {
         return true;
     }
 
+    /**
+     * Обновляет пароль продавца в Firebase Firestore. Сохраняет новый пароль.
+     */
     private void updatePassword(String newPassword) {
         if (!isAdded() || userDocumentId == null) {
             Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
@@ -660,6 +724,10 @@ public class SellerProfileActivity extends Fragment {
                 });
     }
 
+    /**
+     * Отображает диалоговое окно для редактирования данных продавца. Позволяет изменить
+     * ФИО, название магазина, ОГРНИП и ИНН.
+     */
     private void showEditSellerDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.edit_sellet_profile_layout, null);
         EditText etEditLastName = dialogView.findViewById(R.id.etEditLastName);
@@ -704,6 +772,10 @@ public class SellerProfileActivity extends Fragment {
         dialog.show();
     }
 
+    /**
+     * Проверяет корректность введенных данных для редактирования профиля продавца.
+     * Убеждается, что все поля заполнены правильно, включая формат ОГРНИП и ИНН.
+     */
     private boolean validateSellerInput(String lastName, String firstName, String middleName, String storeName, String ogrnip, String inn) {
         if (storeName.isEmpty()) {
             Toast.makeText(requireContext(), "Наименование магазина должно содержать хотя бы 1 символ", Toast.LENGTH_SHORT).show();
@@ -732,6 +804,10 @@ public class SellerProfileActivity extends Fragment {
         return true;
     }
 
+    /**
+     * Обновляет данные продавца в Firebase Firestore. Сохраняет новые значения ФИО,
+     * названия магазина, ОГРНИП и ИНН, а затем обновляет UI.
+     */
     private void updateSellerData(String lastName, String firstName, String middleName, String storeName, String ogrnip, String inn) {
         if (!isAdded() || userDocumentId == null) {
             Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
@@ -755,6 +831,10 @@ public class SellerProfileActivity extends Fragment {
                 });
     }
 
+    /**
+     * Удаляет аккаунт продавца. Сначала удаляет все товары продавца, затем удаляет
+     * сам аккаунт и перенаправляет на экран входа.
+     */
     private void deleteSellerAccount() {
         if (!isAdded() || userDocumentId == null) {
             Toast.makeText(requireContext(), "Ошибка: ID пользователя не найден", Toast.LENGTH_SHORT).show();
@@ -784,6 +864,10 @@ public class SellerProfileActivity extends Fragment {
                 });
     }
 
+    /**
+     * Удаляет данные пользователя из Firebase Firestore. Очищает SharedPreferences
+     * и перенаправляет на экран входа.
+     */
     private void deleteUserAccount() {
         if (!isAdded()) {
             return;
@@ -810,6 +894,10 @@ public class SellerProfileActivity extends Fragment {
                 });
     }
 
+    /**
+     * Выполняет выход продавца из системы. Очищает SharedPreferences и перенаправляет
+     * на экран авторизации продавца.
+     */
     private void logout() {
         if (!isAdded()) {
             return;
@@ -829,6 +917,9 @@ public class SellerProfileActivity extends Fragment {
         }
     }
 
+    /**
+     * Внутренний класс ProductRevenue представляет данные о выручке по товару за определенную дату.
+     */
     private static class ProductRevenue {
         Date date;
         long revenue;
@@ -839,6 +930,9 @@ public class SellerProfileActivity extends Fragment {
         }
     }
 
+    /**
+     * Внутренний класс Order представляет заказ с его идентификатором, датой и списком товаров.
+     */
     private static class Order {
         private String id;
         private Date orderDate;

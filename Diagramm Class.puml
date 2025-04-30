@@ -1,0 +1,674 @@
+@startuml
+class com.example.ozon.Cart {
+- String documentId
+- String productId
+- String name
+- int price
+- int quantity
+- String imageBase64
+- String userId
++ String getDocumentId()
++ void setDocumentId(String)
++ String getProductId()
++ void setProductId(String)
++ String getUserId()
++ void setUserId(String)
++ String getName()
++ void setName(String)
++ int getPrice()
++ void setPrice(int)
++ int getQuantity()
++ void setQuantity(int)
++ String getImageBase64()
++ void setImageBase64(String)
+}
+
+
+class com.example.ozon.AutorizationForSellerActivity {
+- TextView buyerAuthLink
+- TextView forgotPasswordLink
+- EditText loginField
+- FirebaseFirestore db
+- SharedPreferences sharedPrefs
+- {static} Pattern SPECIAL_CHAR_PATTERN
+# void onCreate(Bundle)
+- void showForgotPasswordDialog()
+- void showChangePasswordDialog(String)
+- boolean validateNewPassword(String,String)
+- String generateVerificationCode()
+- void sendPasswordRecoveryEmail(String,String)
+- void loginUser()
+- void startSellerMainActivity(String)
+}
+
+
+class com.example.ozon.SendEmailTask {
+- String recipient
+- String subject
+- String body
+- Context context
+- boolean isHtml
+# Boolean doInBackground(Void)
+# void onPostExecute(Boolean)
+}
+
+
+class com.example.ozon.SellerProfileActivity {
+- TextView tvSellerName
+- ImageView btnMenu
+- Spinner productSpinner
+- LineChart revenueChart
+- FirebaseFirestore db
+- String userDocumentId
+- List<String> productIds
+- {static} Pattern SPECIAL_CHAR_PATTERN
+- Map<String,String> productIdToNameMap
+- Map<String,List<ProductRevenue>> productRevenueMap
+- List<Order> cachedOrders
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
+- void loadSellerProducts()
+- void loadSellerData()
+- void loadOrdersData()
+- void processOrdersData(List<Order>)
+- void setupProductSpinner()
+- void updateChart(String)
+- void showSellerActionsMenu(View)
+- void showConfirmPasswordDialog()
+- void showForgotPasswordDialog(String)
+- String generateVerificationCode()
+- void sendPasswordRecoveryEmail(String,String)
+- void showChangePasswordDialog()
+- boolean validateNewPassword(String,String)
+- void updatePassword(String)
+- void showEditSellerDialog()
+- boolean validateSellerInput(String,String,String,String,String,String)
+- void updateSellerData(String,String,String,String,String,String)
+- void deleteSellerAccount()
+- void deleteUserAccount()
+- void logout()
+}
+
+
+class com.example.ozon.SellerProfileActivity$ProductRevenue {
+~ Date date
+~ long revenue
+}
+
+class com.example.ozon.SellerProfileActivity$Order {
+- String id
+- Date orderDate
+- List<Map<String,Object>> products
++ String getId()
++ void setId(String)
++ Date getOrderDate()
++ void setOrderDate(Date)
++ List<Map<String,Object>> getProducts()
++ void setProducts(List<Map<String,Object>>)
+}
+
+
+class com.example.ozon.NotificationHelper {
+- {static} String TAG
+- {static} String CHANNEL_ID
+- {static} String CHANNEL_NAME
+- {static} String CHANNEL_DESCRIPTION
++ {static} void createNotificationChannel(Context)
++ {static} void sendOrderNotification(Context,Order,String,String,String)
++ {static} void sendDeliveryNotification(Context,String,boolean,long,String,String)
+}
+
+
+class com.example.ozon.ProductAdapter {
+- List<Product> products
+- OnItemClickListener listener
+- String userDocumentId
+- String userRole
+- boolean isForOrder
++ ProductViewHolder onCreateViewHolder(ViewGroup,int)
++ void onBindViewHolder(ProductViewHolder,int)
++ int getItemCount()
++ void updateData(List<Product>,Map<String,Integer>)
+- void addToCart(Product,ProductViewHolder)
+- void editProduct(Product,ProductViewHolder)
+- void deleteProduct(Product,ProductViewHolder)
+- void showToast(ProductViewHolder,String,boolean)
+}
+
+
+interface com.example.ozon.ProductAdapter$OnItemClickListener {
+~ void onItemClick(Product)
+}
+
+class com.example.ozon.ProductAdapter$ProductViewHolder {
+~ TextView productName
+~ ImageView productImage
+~ Button addToCartButton
+~ boolean isForOrderMode
++ void bind(Product)
+}
+
+
+class com.example.ozon.ProfileActivity {
+- {static} String STATUS_CREATED
+- {static} String STATUS_DELIVERED
+- SharedPreferences sharedPrefs
+- Context context
+- TextView tvUserName
+- FirebaseFirestore db
+- String userDocumentId
+- String userRole
+- LinearLayout completedOrdersContainer
+- ListenerRegistration userListener
+- ListenerRegistration inDeliveryOrdersListener
+- ListenerRegistration completedOrdersListener
+- ListenerRegistration cardsListener
+- {static} Pattern SPECIAL_CHAR_PATTERN
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
++ void onStart()
++ void onStop()
++ void onDestroy()
+- void initializeViews(View)
+- void setupMenuButton(View)
+- void setupAddCardButton(View)
+- void setupRealtimeListeners()
+- void removeRealtimeListeners()
+- void updateUserDataUI(DocumentSnapshot)
+- void updateInDeliveryOrdersUI(List<DocumentSnapshot>)
+- void updateCompletedOrdersUI(List<DocumentSnapshot>)
+- void updateCardsUI(List<DocumentSnapshot>)
+- void addOrderCard(LinearLayout,DocumentSnapshot,boolean)
+- void addEmptyMessage(LinearLayout,String)
+- void showPopupMenu(View)
+- void logoutUser()
+- void checkIfSellerExistsBeforeRegistration()
+- void showRegisterSellerDialog()
+- boolean validateSellerInput(String,String,String,String,String,String)
+- void registerSeller(String,String,String,String,String,String)
+- void navigateToSellerActivity(String)
+- void showEditAccountDialog()
+- boolean validateAccountInput(String)
+- void updateUserData(String)
+- void showConfirmPasswordDialog()
+- void verifyOldPassword(String,AlertDialog,Button)
+- void showForgotPasswordDialog(String)
+- void sendPasswordRecoveryEmail(String,String)
+- void showChangePasswordDialog()
+- boolean validateNewPassword(String,String)
+- void updatePassword(String)
+- void deleteAccount()
+- void deleteUserRelatedData(Runnable)
+- void showAddCardDialog()
+- boolean validateCardInput(String,String,String)
+- void saveCardToFirestore(String,String,String)
+- void addCardToView(DocumentSnapshot)
+- void showCardOptionsMenu(View,String)
+- void deleteCard(String)
+}
+
+
+class com.example.ozon.CustomerMainActivity {
+- {static} String TAG
+- FirebaseFirestore db
+- String userDocumentId
+- OrderManager orderManager
+- Handler handler
+- Runnable recalculateRunnable
+- {static} long RECALCULATE_INTERVAL
+# void onCreate(Bundle)
+- void startPeriodicRecalculation()
+- void recalculateUserOrders()
+- void checkAndUpdateOrder(DocumentSnapshot)
+- void updateOrderInFirestore(Order,String,boolean,long)
++ void onRequestPermissionsResult(int,String[],int[])
+# void onDestroy()
+}
+
+
+class com.example.ozon.CartAdapter {
+# void onBindViewHolder(CartViewHolder,int,Cart)
+- void updateQuantity(String,int,Context)
+- void deleteCartItem(String,Context)
+- Bitmap base64ToBitmap(String)
++ CartViewHolder onCreateViewHolder(ViewGroup,int)
+}
+
+class com.example.ozon.CartAdapter$CartViewHolder {
+~ TextView productName
+~ ImageView productImage
+}
+
+class com.example.ozon.Product {
+- String id
+- String name
+- int price
+- String productType
+- String imageBase64
+- String description
+- String sellerId
+- int quantity
++ String getId()
++ void setId(String)
++ String getName()
++ void setName(String)
++ int getPrice()
++ void setPrice(int)
++ String getProductType()
++ void setProductType(String)
++ String getImageBase64()
++ void setImageBase64(String)
++ String getDescription()
++ void setDescription(String)
++ String getSellerId()
++ void setSellerId(String)
++ int getQuantity()
++ void setQuantity(int)
++ String toString()
+}
+
+
+class com.example.ozon.SellerCatalogActivity {
+- RecyclerView recyclerView
+- ProductAdapter productAdapter
+- FirebaseFirestore db
+- String userDocumentId
+- String userRole
+- TextView emptyView
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
+- void loadProducts(String)
+- void openProductDetailSeller(String,String,String)
+}
+
+
+class com.example.ozon.MailSender {
+- {static} String EMAIL
+- {static} String PASSWORD
++ {static} void sendEmail(String,String,String,boolean)
+}
+
+
+class com.example.ozon.Order {
+- String userId
+- int totalAmount
+- String paymentMethod
+- List<Product> products
+- String status
+- Timestamp orderDate
+- Long days
+- Long initialDays
+- Boolean notificationSent
+- String deliveryAddress
+- Long lastNotifiedDays
++ String getUserId()
++ void setUserId(String)
++ int getTotalAmount()
++ void setTotalAmount(int)
++ String getPaymentMethod()
++ void setPaymentMethod(String)
++ List<Product> getProducts()
++ void setProducts(List<Product>)
++ String getStatus()
++ void setStatus(String)
++ Timestamp getOrderDate()
++ void setOrderDate(Timestamp)
++ Long getDays()
++ void setDays(Long)
++ Long getInitialDays()
++ void setInitialDays(Long)
++ Boolean getNotificationSent()
++ void setNotificationSent(Boolean)
++ String getDeliveryAddress()
++ void setDeliveryAddress(String)
++ Long getLastNotifiedDays()
++ void setLastNotifiedDays(Long)
+}
+
+
+class com.example.ozon.ProductDetailSeller {
+- Product product
+- ImageView productImage
+- TextView productName
+- Button editProductButton
+- TextView revenueTextView
+- String userDocumentId
+- {static} int PICK_IMAGE_REQUEST
+- Uri imageUri
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
+- void calculateRevenue()
+- void updateUI()
+- void showOptionsMenu()
+- void showAddQuantityDialog()
+- void updateProductQuantity(int)
+- void showEditProductDialog()
+- boolean validateProductInput(String,String,String,Object)
+- void loadProductTypes(Spinner)
+- void updateProductInfo(String,int,String,String,Uri)
+- String handleImage(Uri)
+- Bitmap resizeBitmap(Bitmap,int,int)
+- void deleteProduct()
+- Bitmap base64ToBitmap(String)
+- void openImagePicker()
++ void onActivityResult(int,int,Intent)
+}
+
+
+class com.example.ozon.CreateProductActivity {
+- {static} int PICK_IMAGE_REQUEST
+- EditText productNameInput
+- ImageView productImagePreview
+- Uri imageUri
+- FirebaseFirestore db
+- String userDocumentId
+- Spinner productTypeInput
+- ArrayAdapter<String> spinnerAdapter
+- List<String> productTypes
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
+- void loadProductTypes()
+- void openImagePicker()
++ void onActivityResult(int,int,Intent)
+- void saveProduct()
+- boolean validateProductInput(String,String,String,String,String)
+- String drawableToBase64(int)
+- String uriToBase64(Uri)
+- void saveProductToFirestore(String,int,String,String,String,int)
+- void clearInputFields()
+}
+
+
+class com.example.ozon.OrderManager {
+- Context context
+- SharedPreferences sharedPrefs
++ void createOrUpdateOrder(Order,String)
+}
+
+
+class com.example.ozon.MainActivity {
+- {static} String TAG
+- TextView registerLink
+- EditText loginField
+- FirebaseFirestore db
+- SharedPreferences sharedPrefs
+- {static} Pattern SPECIAL_CHAR_PATTERN
+# void onCreate(Bundle)
+- void applyTextGradient(TextView)
+- void initializeViews()
+- void setupClickListeners()
+- void requestNotificationPermission()
++ void onRequestPermissionsResult(int,String[],int[])
+- void loginUser()
+- void saveLoginData(String,String)
+- void startCustomerMainActivity(String)
+- void showForgotPasswordDialog()
+- void handleSendCode(EditText,Button,String[])
+- void handleChangePassword(EditText,EditText,String[],AlertDialog)
+- void sendPasswordRecoveryEmail(String,String)
+- void showChangePasswordDialog(String)
+- void updatePassword(String,EditText,EditText,AlertDialog)
+- boolean validateNewPassword(String,String)
+- String generateVerificationCode()
+}
+
+
+class com.example.ozon.CartActivity {
+- RecyclerView cartRecyclerView
+- CartAdapter cartAdapter
+- TextView totalAmount
+- Button clearCartButton
+- String userDocumentId
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
++ void onActivityCreated(Bundle)
+- void loadCarts()
+- void clearCart()
++ void onStop()
+}
+
+
+class com.example.ozon.DeliveryReminderReceiver {
++ void onReceive(Context,Intent)
+}
+
+class com.example.ozon.DeliveryWidgetProvider {
+- {static} String TAG
+- {static} String ACTION_UPDATE
+- {static} Handler handler
+- {static} Runnable updateRunnable
++ void onUpdate(Context,AppWidgetManager,int[])
++ void onReceive(Context,Intent)
+- void updateWidget(Context,AppWidgetManager,int)
+- void startUpdating(Context)
++ void onDisabled(Context)
+- boolean isUserAuthenticated(Context)
+}
+
+
+class com.example.ozon.RegistrationActivity {
+- TextView loginLink
+- TextView sellerAuthLink
+- EditText loginField
+- Button registerButton
+- FirebaseFirestore db
+- {static} Pattern SPECIAL_CHAR_PATTERN
+# void onCreate(Bundle)
+- void applyTextGradient(TextView)
+- void registerUser(String,String,String)
+- boolean validateLogin(String)
+- boolean validatePassword(String)
+- void performRegistration(String,String,String)
+- void saveUserAuthData(String,String)
+}
+
+
+class com.example.ozon.NotificationScheduler {
+- {static} String TAG
++ {static} void scheduleDeliveryReminder(Context,Order,String,String,String)
+}
+
+
+class com.example.ozon.OrderActivity {
+~ {static} int MAP_SELECTION_REQUEST_CODE
+- RecyclerView recyclerView
+- CheckBox agreementCheckBox
+- Button payButton
+- TextView totalAmount
+- Switch protectionSwitch
+- Button addCardButton
+- boolean isProtectionEnabled
+- int total
+- int protectionCost
+- OrderAdapter orderAdapter
+- Spinner bankCardSpinner
+- TextView selectedCardInfo
+- List<String> bankCards
+- TextView deliveryAddressText
+- Button updateAddressButton
+- ArrayAdapter<String> bankCardAdapter
+- String userDocumentId
+- String selectedCardNumber
+- LinearLayout cardsContainer
+- String deliveryAddress
+- GeoPoint deliveryLocation
++ void onActivityResult(int,int,Intent)
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
+- void initViews(View)
+- void updateDeliveryAddressText()
+- void getUserData()
+- void setupBankCardSpinner()
+- void setupEventListeners()
+- void loadCartItems()
+- void loadBankCards()
+- void showDeliveryAddressDialog()
+- void startMapSelection()
+- void showManualAddressInputDialog()
+- boolean validateAddress(String)
+- void showAddCardDialog()
+- boolean validateCardInput(String,String,String)
+- void saveCardToFirestore(String,String,String)
+- boolean checkOrderConditionsExceptAddress()
+- void updateTotalFromAdapter()
+- void updatePayButtonState()
+- void updateTotalAmount()
+- void processPayment()
+- void showConfirmationDialog(String,List<Cart>,int)
+- void createOrder(String,List<Cart>,int,String)
+- void updateProductQuantities(List<Cart>,ProductUpdateCallback)
+- void clearCart(String)
+- void navigateToCatalog()
+- String getCurrentUserId()
+- void showToast(String)
++ void onStart()
++ void onStop()
+}
+
+
+interface com.example.ozon.OrderActivity$ProductUpdateCallback {
+~ void onAllProductsUpdated()
+~ void onUpdateFailed(Exception)
+}
+
+class com.example.ozon.OrderAdapter {
+# void onBindViewHolder(OrderViewHolder,int,Cart)
++ void onDataChanged()
++ List<Cart> getCartItems()
++ OrderViewHolder onCreateViewHolder(ViewGroup,int)
+}
+
+class com.example.ozon.OrderAdapter$OrderViewHolder {
+~ TextView productName
+}
+
+class com.example.ozon.NetworkUtil {
++ {static} boolean isNetworkAvailable(Context)
+}
+
+class com.example.ozon.ProductDetail {
+- ImageView productImage
+- TextView productName
+- Button addToCartButton
+- FirebaseFirestore db
+- String documentId
+- String imageBase64
+- String name
+- Long price
+- String userDocumentId
+- String sellerId
+- int availableQuantity
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
+- void loadProductDetails(String)
+- void updateAddToCartButtonState()
+- void loadStoreName(String)
+- void addToCart()
+}
+
+
+class com.example.ozon.SellerMainActivity {
+# void onCreate(Bundle)
+}
+
+class com.example.ozon.MapSelectionActivity {
+- {static} int LOCATION_PERMISSION_REQUEST_CODE
+- {static} String YANDEX_MAPKIT_API_KEY
+- {static} boolean isMapKitInitialized
+- MapView mapView
+- SearchManager searchManager
+- Point selectedPoint
+- String selectedAddress
+- Session searchSession
+- Button btnConfirm
+- Button btnResetSelection
+- Button btnCancelSelection
+- InputListener mapInputListener
+- boolean isManualSelection
+- boolean isInitialAddressShown
+- PlacemarkMapObject userLocationMarker
+- PlacemarkMapObject selectedLocationMarker
+- FusedLocationProviderClient fusedLocationClient
+- LocationCallback locationCallback
+# void onCreate(Bundle)
+- boolean isNetworkAvailable()
+- void initViews()
+- void initLocationServices()
+- void createLocationRequest()
+- void updateLocationOnMap(Location)
+- void setupMap()
+- void handleMapTap(Point)
+- void resetToLocationTracking()
+- void searchAddress(Point)
+- void checkLocationPermissionAndMoveToCurrentLocation()
++ void onRequestPermissionsResult(int,String[],int[])
+- void returnResult()
+# void onStart()
+# void onStop()
+# void onPause()
+# void onResume()
++ boolean dispatchTouchEvent(MotionEvent)
+}
+
+
+class com.example.ozon.CatalogActivity {
+- {static} String TAG
+- RecyclerView recyclerView
+- ProductAdapter productAdapter
+- FirebaseFirestore db
+- EditText searchBar
+- MaterialButton searchButton
+- MaterialButton filterButton
+- String selectedCategory
+- int maxPrice
+- int currentPrice
+- boolean filterByPopularity
+- String userDocumentId
+- String userRole
+- TextView emptyView
++ View onCreateView(LayoutInflater,ViewGroup,Bundle)
+- void setupSearch()
+- void hideKeyboard()
+- void setupFilters()
+- void performSearch(String)
+- void loadMaxPriceFromDB(Runnable)
+- void showFiltersDialog()
+- void loadCategories(Spinner,String)
+- void setupRecyclerView(String,String,int,boolean)
+- void fetchPopularityData(OnPopularityDataFetchedListener)
+- void openProductDetail(String,String)
+}
+
+
+interface com.example.ozon.CatalogActivity$OnPopularityDataFetchedListener {
+~ void onPopularityDataFetched(Map<String,Integer>)
+}
+
+
+
+androidx.appcompat.app.AppCompatActivity <|-- com.example.ozon.AutorizationForSellerActivity
+android.os.AsyncTask <|-- com.example.ozon.SendEmailTask
+androidx.fragment.app.Fragment <|-- com.example.ozon.SellerProfileActivity
+com.example.ozon.SellerProfileActivity +.. com.example.ozon.SellerProfileActivity$ProductRevenue
+com.example.ozon.SellerProfileActivity +.. com.example.ozon.SellerProfileActivity$Order
+com.example.ozon.Adapter <|-- com.example.ozon.ProductAdapter
+com.example.ozon.ProductAdapter +.. com.example.ozon.ProductAdapter$OnItemClickListener
+com.example.ozon.ProductAdapter +.. com.example.ozon.ProductAdapter$ProductViewHolder
+com.example.ozon.ViewHolder <|-- com.example.ozon.ProductAdapter$ProductViewHolder
+androidx.fragment.app.Fragment <|-- com.example.ozon.ProfileActivity
+androidx.appcompat.app.AppCompatActivity <|-- com.example.ozon.CustomerMainActivity
+com.firebase.ui.firestore.FirestoreRecyclerAdapter <|-- com.example.ozon.CartAdapter
+com.example.ozon.CartAdapter +.. com.example.ozon.CartAdapter$CartViewHolder
+com.example.ozon.ViewHolder <|-- com.example.ozon.CartAdapter$CartViewHolder
+java.io.Serializable <|.. com.example.ozon.Product
+androidx.fragment.app.Fragment <|-- com.example.ozon.SellerCatalogActivity
+androidx.fragment.app.Fragment <|-- com.example.ozon.ProductDetailSeller
+androidx.fragment.app.Fragment <|-- com.example.ozon.CreateProductActivity
+androidx.appcompat.app.AppCompatActivity <|-- com.example.ozon.MainActivity
+androidx.fragment.app.Fragment <|-- com.example.ozon.CartActivity
+android.content.BroadcastReceiver <|-- com.example.ozon.DeliveryReminderReceiver
+android.appwidget.AppWidgetProvider <|-- com.example.ozon.DeliveryWidgetProvider
+androidx.appcompat.app.AppCompatActivity <|-- com.example.ozon.RegistrationActivity
+androidx.fragment.app.Fragment <|-- com.example.ozon.OrderActivity
+com.example.ozon.OrderActivity +.. com.example.ozon.OrderActivity$ProductUpdateCallback
+com.firebase.ui.firestore.FirestoreRecyclerAdapter <|-- com.example.ozon.OrderAdapter
+com.example.ozon.OrderAdapter +.. com.example.ozon.OrderAdapter$OrderViewHolder
+com.example.ozon.ViewHolder <|-- com.example.ozon.OrderAdapter$OrderViewHolder
+androidx.fragment.app.Fragment <|-- com.example.ozon.ProductDetail
+androidx.appcompat.app.AppCompatActivity <|-- com.example.ozon.SellerMainActivity
+androidx.appcompat.app.AppCompatActivity <|-- com.example.ozon.MapSelectionActivity
+androidx.fragment.app.Fragment <|-- com.example.ozon.CatalogActivity
+com.example.ozon.CatalogActivity +.. com.example.ozon.CatalogActivity$OnPopularityDataFetchedListener
+@enduml

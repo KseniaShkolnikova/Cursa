@@ -7,5 +7,4 @@
     <string name="network_error">Нет интернет-соединения</string>
     <string name="server_error">Ошибка сервера</string>
     <string name="location_permission_denied">Для точного определения местоположения нужны разрешения</string>
-
 </resources>

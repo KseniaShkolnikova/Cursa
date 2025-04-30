@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.util.Log;
 import java.util.Properties;
 import javax.mail.Authenticator;
@@ -9,9 +10,22 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
+/**
+ * Класс MailSender предоставляет функционал для отправки электронных писем
+ * в приложении "OZON". Использует SMTP-сервер mail.ru для
+ * отправки писем с заданного адреса электронной почты.
+ */
 public class MailSender {
     private static final String EMAIL = "sesha_shk@mail.ru";
     private static final String PASSWORD = "jrnM9p0yFSvy3qE0GhTi";
+
+    /**
+     * Отправляет электронное письмо на указанный адрес. Настраивает SMTP-сессию
+     * с использованием учетных данных, формирует сообщение с заданной темой и телом,
+     * и отправляет его. Поддерживает отправку писем в формате HTML или обычного текста.
+     * В случае ошибки логирует её и выбрасывает исключение.
+     */
     public static void sendEmail(String recipient, String subject, String body, boolean isHtml) {
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.mail.ru");

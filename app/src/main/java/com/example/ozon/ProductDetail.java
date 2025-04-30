@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.LayoutInflater;
@@ -12,6 +13,13 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+/**
+ * Класс ProductDetail представляет собой фрагмент для отображения детальной информации
+ * о товаре в приложении "OZON". Позволяет пользователю просмотреть
+ * данные о товаре, такие как название, цена, описание, тип, изображение и магазин,
+ * а также добавить товар в корзину.
+ */
 public class ProductDetail extends Fragment {
     private ImageView productImage;
     private TextView productName, productPrice, productTypes, productDescription, storeNameTextView;
@@ -24,6 +32,11 @@ public class ProductDetail extends Fragment {
     private String userDocumentId;
     private String sellerId;
     private int availableQuantity = 0;
+
+    /**
+     * Создает и возвращает представление фрагмента. Инициализирует элементы UI,
+     * извлекает данные о товаре и пользователе из аргументов и загружает детали товара.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.product_detail_layout, container, false);
@@ -40,10 +53,16 @@ public class ProductDetail extends Fragment {
             documentId = args.getString("productId");
             userDocumentId = args.getString("userDocumentId");
         }
-            loadProductDetails(documentId);
+        loadProductDetails(documentId);
         addToCartButton.setOnClickListener(v -> addToCart());
         return view;
     }
+
+    /**
+     * Загружает детальную информацию о товаре из Firebase Firestore. Заполняет элементы UI
+     * данными о товаре, такими как название, цена, описание, тип и изображение, а также
+     * загружает название магазина продавца.
+     */
     private void loadProductDetails(String documentId) {
         db.collection("products")
                 .document(documentId)
@@ -80,6 +99,11 @@ public class ProductDetail extends Fragment {
                     }
                 });
     }
+
+    /**
+     * Обновляет состояние кнопки добавления в корзину. Деактивирует кнопку, если товара
+     * нет в наличии, и активирует её, если товар доступен.
+     */
     private void updateAddToCartButtonState() {
         if (availableQuantity <= 0) {
             addToCartButton.setEnabled(false);
@@ -90,6 +114,11 @@ public class ProductDetail extends Fragment {
             addToCartButton.setBackgroundColor(getResources().getColor(R.color.button_color));
         }
     }
+
+    /**
+     * Загружает название магазина продавца из Firebase Firestore. Обновляет текстовое поле
+     * с названием магазина или устанавливает значение "Неизвестно", если данные отсутствуют.
+     */
     private void loadStoreName(String sellerId) {
         db.collection("users")
                 .document(sellerId)
@@ -110,6 +139,11 @@ public class ProductDetail extends Fragment {
                     }
                 });
     }
+
+    /**
+     * Добавляет товар в корзину пользователя в Firebase Firestore. Проверяет наличие товара
+     * на складе, обновляет количество в корзине или создает новую запись, если товар добавляется впервые.
+     */
     private void addToCart() {
         if (userDocumentId == null) {
             return;
@@ -134,7 +168,6 @@ public class ProductDetail extends Fragment {
                             FirebaseFirestore.getInstance().collection("cart")
                                     .document(cartItemId)
                                     .update("quantity", currentQuantity + 1)
-
                                     .addOnFailureListener(e -> {
                                         Toast.makeText(getContext(), "Ошибка при обновлении корзины", Toast.LENGTH_SHORT).show();
                                     });

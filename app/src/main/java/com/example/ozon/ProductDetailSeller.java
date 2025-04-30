@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -29,6 +30,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+/**
+ * Класс ProductDetailSeller представляет собой фрагмент для отображения и редактирования
+ * детальной информации о товаре продавцом в приложении "OZON". Позволяет
+ * продавцу изменять информацию о товаре, пополнять количество, удалять товар и просматривать
+ * выручку от продаж.
+ */
 public class ProductDetailSeller extends Fragment {
     private Product product;
     private ImageView productImage;
@@ -38,6 +46,11 @@ public class ProductDetailSeller extends Fragment {
     private String userDocumentId;
     private static final int PICK_IMAGE_REQUEST = 1;
     private Uri imageUri;
+
+    /**
+     * Создает и возвращает представление фрагмента. Инициализирует элементы UI, загружает
+     * данные о товаре из Firebase Firestore и настраивает обработчик для кнопки редактирования.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.product_detail_seller_layout, container, false);
@@ -83,6 +96,11 @@ public class ProductDetailSeller extends Fragment {
         editProductButton.setOnClickListener(v -> showOptionsMenu());
         return view;
     }
+
+    /**
+     * Вычисляет выручку от продаж товара. Анализирует все заказы в Firebase Firestore,
+     * подсчитывает количество проданных единиц и общую сумму, затем обновляет UI.
+     */
     private void calculateRevenue() {
         if (product == null) return;
         FirebaseFirestore.getInstance().collection("orders")
@@ -107,13 +125,17 @@ public class ProductDetailSeller extends Fragment {
                                 }
                             }
                         }
-
                         revenueTextView.setText(String.format("Выручка: %.2f ₽ (продано %d шт.)", totalRevenue, totalQuantitySold));
                     } else {
                         revenueTextView.setText("Выручка: данные недоступны");
                     }
                 });
     }
+
+    /**
+     * Обновляет элементы UI данными о товаре. Устанавливает название, цену, тип, описание,
+     * количество и изображение товара, а также вызывает метод для расчета выручки.
+     */
     private void updateUI() {
         if (product != null) {
             productName.setText(product.getName());
@@ -134,6 +156,11 @@ public class ProductDetailSeller extends Fragment {
             }
         }
     }
+
+    /**
+     * Отображает меню с опциями для редактирования товара. Предлагает пользователю
+     * пополнить количество, изменить информацию о товаре или удалить товар.
+     */
     private void showOptionsMenu() {
         String[] options = {"Пополнить количество", "Изменить информацию", "Удалить товар"};
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
@@ -153,6 +180,11 @@ public class ProductDetailSeller extends Fragment {
         });
         builder.show();
     }
+
+    /**
+     * Отображает диалоговое окно для пополнения количества товара. Позволяет продавцу
+     * ввести количество для добавления и обновляет данные в Firebase Firestore.
+     */
     private void showAddQuantityDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
@@ -177,9 +209,13 @@ public class ProductDetailSeller extends Fragment {
                 Toast.makeText(requireContext(), "Введите количество", Toast.LENGTH_SHORT).show();
             }
         });
-
         dialog.show();
     }
+
+    /**
+     * Обновляет количество товара в Firebase Firestore. Увеличивает количество на указанное
+     * значение и обновляет UI после успешного обновления.
+     */
     private void updateProductQuantity(int addedQuantity) {
         int newQuantity = product.getQuantity() + addedQuantity;
         FirebaseFirestore.getInstance().collection("products")
@@ -193,6 +229,11 @@ public class ProductDetailSeller extends Fragment {
                     Toast.makeText(requireContext(), "Ошибка при обновлении", Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Отображает диалоговое окно для редактирования информации о товаре. Позволяет продавцу
+     * изменить название, цену, описание, тип и изображение товара, а также удалить изображение.
+     */
     private void showEditProductDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
@@ -203,7 +244,7 @@ public class ProductDetailSeller extends Fragment {
         EditText editDescription = dialogView.findViewById(R.id.editDescription);
         Spinner editTypeSpinner = dialogView.findViewById(R.id.editTypeSpinner);
         Button uploadImageButton = dialogView.findViewById(R.id.uploadImageButton);
-        Button removeImageButton = dialogView.findViewById(R.id.removeImageButton); // Новая кнопка
+        Button removeImageButton = dialogView.findViewById(R.id.removeImageButton);
         Button cancelButton = dialogView.findViewById(R.id.cancelButton);
         Button saveButton = dialogView.findViewById(R.id.saveButton);
         if (editName == null || editPrice == null || editDescription == null || editTypeSpinner == null ||
@@ -242,6 +283,11 @@ public class ProductDetailSeller extends Fragment {
         });
         dialog.show();
     }
+
+    /**
+     * Проверяет корректность введенных данных о товаре. Убеждается, что название, цена,
+     * описание и тип товара соответствуют заданным требованиям.
+     */
     private boolean validateProductInput(String name, String priceStr, String description, Object selectedItem) {
         if (name.length() < 4) {
             Toast.makeText(requireContext(), "Название должно содержать минимум 4 символа", Toast.LENGTH_SHORT).show();
@@ -272,6 +318,10 @@ public class ProductDetailSeller extends Fragment {
         return true;
     }
 
+    /**
+     * Загружает список типов товаров из Firebase Firestore и заполняет выпадающий список.
+     * Устанавливает текущий тип товара, если он уже задан.
+     */
     private void loadProductTypes(Spinner spinner) {
         FirebaseFirestore.getInstance().collection("productType")
                 .get()
@@ -287,7 +337,6 @@ public class ProductDetailSeller extends Fragment {
                         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, types);
                         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         spinner.setAdapter(adapter);
-
                         if (product != null) {
                             int position = types.indexOf(product.getProductType());
                             if (position >= 0) {
@@ -299,6 +348,11 @@ public class ProductDetailSeller extends Fragment {
                     }
                 });
     }
+
+    /**
+     * Обновляет информацию о товаре в Firebase Firestore. Сохраняет новые данные о товаре,
+     * включая название, цену, описание, тип и изображение, и обновляет UI после успешного сохранения.
+     */
     private void updateProductInfo(String name, int price, String description, String type, Uri imageUri) {
         String imageBase64 = product.getImageBase64();
         if (imageUri != null) {
@@ -332,6 +386,11 @@ public class ProductDetailSeller extends Fragment {
                     Toast.makeText(requireContext(), "Ошибка при обновлении", Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Обрабатывает выбранное изображение. Преобразует изображение в формат Base64 после
+     * изменения размера и сжатия.
+     */
     private String handleImage(Uri imageUri) {
         try {
             InputStream inputStream = requireActivity().getContentResolver().openInputStream(imageUri);
@@ -346,6 +405,11 @@ public class ProductDetailSeller extends Fragment {
             return null;
         }
     }
+
+    /**
+     * Изменяет размер изображения, сохраняя пропорции, чтобы ширина и высота не превышали
+     * заданных максимальных значений.
+     */
     private Bitmap resizeBitmap(Bitmap bitmap, int maxWidth, int maxHeight) {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
@@ -360,6 +424,11 @@ public class ProductDetailSeller extends Fragment {
         }
         return Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true);
     }
+
+    /**
+     * Удаляет товар из Firebase Firestore. После успешного удаления возвращает пользователя
+     * на предыдущий экран.
+     */
     private void deleteProduct() {
         FirebaseFirestore.getInstance().collection("products")
                 .document(product.getId())
@@ -371,6 +440,10 @@ public class ProductDetailSeller extends Fragment {
                     Toast.makeText(requireContext(), "Ошибка при удалении", Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Преобразует строку Base64 в объект Bitmap. Используется для отображения изображения товара.
+     */
     private Bitmap base64ToBitmap(String base64String) {
         try {
             byte[] decodedBytes = Base64.decode(base64String, Base64.DEFAULT);
@@ -380,10 +453,19 @@ public class ProductDetailSeller extends Fragment {
             return null;
         }
     }
+
+    /**
+     * Открывает системный выбор изображения для загрузки нового изображения товара.
+     */
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
+
+    /**
+     * Обрабатывает результат выбора изображения. Загружает выбранное изображение в UI
+     * с помощью Glide.
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

@@ -17,12 +17,22 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Locale;
 
+/**
+ * Класс DeliveryWidgetProvider представляет собой виджет для отображения информации
+ * о ближайшем заказе пользователя в приложении "OZON". Показывает
+ * дату доставки и оставшееся время до доставки, обновляя данные с заданным интервалом.
+ * Использует Firebase Firestore для получения данных о заказах.
+ */
 public class DeliveryWidgetProvider extends AppWidgetProvider {
     private static final String TAG = "DeliveryWidgetProvider";
     private static final String ACTION_UPDATE = "com.example.ozon.UPDATE_WIDGET";
     private static final Handler handler = new Handler(Looper.getMainLooper());
     private static Runnable updateRunnable;
 
+    /**
+     * Вызывается при обновлении виджета. Обновляет содержимое каждого экземпляра виджета
+     * и запускает периодическое обновление данных.
+     */
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
@@ -31,6 +41,10 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
         startUpdating(context);
     }
 
+    /**
+     * Обрабатывает широковещательные сообщения. Если получено сообщение с действием
+     * ACTION_UPDATE, обновляет содержимое всех экземпляров виджета.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
@@ -44,6 +58,12 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    /**
+     * Обновляет содержимое виджета. Проверяет авторизацию пользователя, его роль и наличие
+     * интернет-соединения. Для покупателя загружает ближайший активный заказ из Firebase Firestore
+     * и отображает дату доставки и оставшееся время. Для продавца отображает сообщение с предложением
+     * управлять заказами в приложении.
+     */
     private void updateWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.delivery_widget);
 
@@ -136,6 +156,10 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
                 });
     }
 
+    /**
+     * Запускает периодическое обновление виджета с заданным интервалом (каждые 6 секунд).
+     * Отправляет широковещательное сообщение для обновления содержимого виджета.
+     */
     private void startUpdating(final Context context) {
         if (updateRunnable != null) {
             handler.removeCallbacks(updateRunnable);
@@ -152,6 +176,10 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
         handler.post(updateRunnable);
     }
 
+    /**
+     * Вызывается, когда виджет удаляется с экрана. Останавливает периодическое обновление
+     * данных, чтобы избежать утечек памяти.
+     */
     @Override
     public void onDisabled(Context context) {
         if (updateRunnable != null) {
@@ -159,6 +187,10 @@ public class DeliveryWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    /**
+     * Проверяет, авторизован ли пользователь, используя данные из SharedPreferences.
+     * Возвращает true, если пользователь авторизован, иначе false.
+     */
     private boolean isUserAuthenticated(Context context) {
         SharedPreferences sharedPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         boolean isLoggedIn = sharedPrefs.getBoolean("isLoggedIn", false);

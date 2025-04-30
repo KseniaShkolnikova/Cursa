@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -33,6 +34,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+
+/**
+ * Класс OrderActivity представляет собой фрагмент для оформления заказа в приложении
+ * "OZON". Позволяет пользователю выбрать способ оплаты, адрес доставки,
+ * включить защиту заказа и подтвердить покупку. Использует Firebase Firestore для работы
+ * с данными корзины, карт и заказов.
+ */
 public class OrderActivity extends Fragment {
     static final int MAP_SELECTION_REQUEST_CODE = 1001;
     private RecyclerView recyclerView;
@@ -56,6 +64,12 @@ public class OrderActivity extends Fragment {
     private LinearLayout cardsContainer;
     private String deliveryAddress = null;
     private GeoPoint deliveryLocation;
+
+    /**
+     * Обрабатывает результат выбора адреса доставки из активности MapSelectionActivity.
+     * Сохраняет выбранный адрес и координаты, обновляет UI и, при выполнении всех условий,
+     * инициирует процесс оплаты.
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -73,6 +87,11 @@ public class OrderActivity extends Fragment {
             }
         }
     }
+
+    /**
+     * Создает и возвращает представление фрагмента. Инициализирует элементы UI, загружает
+     * данные пользователя, корзины и банковских карт, а также настраивает обработчики событий.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.order_layout, container, false);
@@ -84,6 +103,12 @@ public class OrderActivity extends Fragment {
         setupEventListeners();
         return view;
     }
+
+    /**
+     * Инициализирует элементы UI фрагмента, такие как список товаров, кнопки, переключатели
+     * и текстовые поля. Настраивает начальное состояние кнопки оплаты и обработчик для выбора
+     * адреса доставки.
+     */
     private void initViews(View view) {
         recyclerView = view.findViewById(R.id.recyclerView);
         agreementCheckBox = view.findViewById(R.id.agreementCheckBox);
@@ -111,6 +136,11 @@ public class OrderActivity extends Fragment {
         updateDeliveryAddressText();
         updateAddressButton.setOnClickListener(v -> showDeliveryAddressDialog());
     }
+
+    /**
+     * Обновляет текстовое поле с адресом доставки. Отображает выбранный адрес или сообщение
+     * о том, что адрес не выбран.
+     */
     private void updateDeliveryAddressText() {
         if (deliveryAddress != null && !deliveryAddress.isEmpty()) {
             deliveryAddressText.setText(deliveryAddress);
@@ -118,6 +148,11 @@ public class OrderActivity extends Fragment {
             deliveryAddressText.setText("Адрес доставки не выбран");
         }
     }
+
+    /**
+     * Извлекает данные пользователя (идентификатор и роль) из переданных аргументов фрагмента.
+     * Если данные отсутствуют, отображает сообщение об ошибке.
+     */
     private void getUserData() {
         Bundle bundle = getArguments();
         if (bundle != null) {
@@ -127,11 +162,21 @@ public class OrderActivity extends Fragment {
             showToast("Ошибка: данные пользователя не переданы");
         }
     }
+
+    /**
+     * Настраивает выпадающий список для выбора банковской карты. Инициализирует адаптер
+     * для списка карт и задает стиль отображения.
+     */
     private void setupBankCardSpinner() {
         bankCardAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, bankCards);
         bankCardAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         bankCardSpinner.setAdapter(bankCardAdapter);
     }
+
+    /**
+     * Настраивает обработчики событий для элементов UI, таких как переключатель защиты заказа,
+     * чекбокс согласия, выбор карты и кнопка добавления новой карты.
+     */
     private void setupEventListeners() {
         protectionSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isProtectionEnabled = isChecked;
@@ -154,6 +199,11 @@ public class OrderActivity extends Fragment {
         });
         addCardButton.setOnClickListener(v -> showAddCardDialog());
     }
+
+    /**
+     * Загружает товары из корзины пользователя из Firebase Firestore. Настраивает адаптер
+     * для отображения списка товаров и обновляет общую сумму при изменении данных.
+     */
     private void loadCartItems() {
         Query query = FirebaseFirestore.getInstance()
                 .collection("cart")
@@ -180,6 +230,11 @@ public class OrderActivity extends Fragment {
             }
         });
     }
+
+    /**
+     * Загружает список банковских карт пользователя из Firebase Firestore. Обновляет UI
+     * в зависимости от наличия карт: показывает выпадающий список или кнопку добавления карты.
+     */
     private void loadBankCards() {
         String userId = getCurrentUserId();
         if (userId != null) {
@@ -209,6 +264,11 @@ public class OrderActivity extends Fragment {
                     .addOnFailureListener(e -> showToast("Ошибка при загрузке карт"));
         }
     }
+
+    /**
+     * Отображает диалоговое окно для выбора способа ввода адреса доставки. Предлагает
+     * пользователю выбрать адрес на карте или ввести его вручную.
+     */
     private void showDeliveryAddressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_map, null);
@@ -228,10 +288,19 @@ public class OrderActivity extends Fragment {
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
+
+    /**
+     * Запускает активность MapSelectionActivity для выбора адреса доставки на карте.
+     */
     private void startMapSelection() {
         Intent intent = new Intent(getActivity(), MapSelectionActivity.class);
         startActivityForResult(intent, MAP_SELECTION_REQUEST_CODE);
     }
+
+    /**
+     * Отображает диалоговое окно для ручного ввода адреса доставки. Позволяет пользователю
+     * ввести адрес, проверяет его корректность и сохраняет при подтверждении.
+     */
     private void showManualAddressInputDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_manual_addres, null);
@@ -255,6 +324,11 @@ public class OrderActivity extends Fragment {
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
+
+    /**
+     * Проверяет корректность введенного адреса доставки. Убеждается, что адрес содержит
+     * город, улицу, дом и квартиру, и соответствует заданному формату.
+     */
     private boolean validateAddress(String address) {
         if (address.isEmpty()) {
             showToast("Введите адрес");
@@ -299,6 +373,11 @@ public class OrderActivity extends Fragment {
         }
         return true;
     }
+
+    /**
+     * Отображает диалоговое окно для добавления новой банковской карты. Позволяет пользователю
+     * ввести номер карты, CVV и срок действия, форматирует ввод и сохраняет карту при подтверждении.
+     */
     private void showAddCardDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.add_card_dialog, null);
@@ -382,6 +461,11 @@ public class OrderActivity extends Fragment {
         dialog.show();
     }
 
+    /**
+     * Проверяет корректность введенных данных банковской карты. Убеждается, что номер карты
+     * содержит 16 цифр, CVV — 3 цифры, а срок действия соответствует формату и находится
+     * в допустимом диапазоне.
+     */
     private boolean validateCardInput(String cardNumber, String cvv, String expiryDate) {
         if (cardNumber.isEmpty() || cvv.isEmpty() || expiryDate.isEmpty()) {
             showToast("Заполните все поля");
@@ -418,6 +502,11 @@ public class OrderActivity extends Fragment {
         }
         return true;
     }
+
+    /**
+     * Сохраняет данные банковской карты в Firebase Firestore. Добавляет карту в коллекцию
+     * "cards" и обновляет список карт в UI после успешного сохранения.
+     */
     private void saveCardToFirestore(String cardNumber, String cvv, String expiryDate) {
         String userId = getCurrentUserId();
         if (userId == null) {
@@ -436,6 +525,11 @@ public class OrderActivity extends Fragment {
                 })
                 .addOnFailureListener(e -> showToast("Ошибка при добавлении карты: " + e.getMessage()));
     }
+
+    /**
+     * Проверяет выполнение условий для оформления заказа, кроме адреса доставки. Убеждается,
+     * что пользователь согласился с условиями, выбрал карту и корзина не пуста.
+     */
     private boolean checkOrderConditionsExceptAddress() {
         if (!agreementCheckBox.isChecked()) {
             showToast("Подтвердите согласие с условиями");
@@ -451,6 +545,11 @@ public class OrderActivity extends Fragment {
         }
         return true;
     }
+
+    /**
+     * Обновляет общую сумму заказа на основе данных из адаптера корзины. Учитывает стоимость
+     * товаров и дополнительную защиту заказа.
+     */
     private void updateTotalFromAdapter() {
         total = 0;
         for (Cart cart : orderAdapter.getCartItems()) {
@@ -458,15 +557,30 @@ public class OrderActivity extends Fragment {
         }
         updateTotalAmount();
     }
+
+    /**
+     * Обновляет состояние кнопки оплаты. Активирует кнопку, если выполнены все условия:
+     * выбрана карта, согласовано с условиями и корзина не пуста.
+     */
     private void updatePayButtonState() {
         boolean isEnabled = agreementCheckBox.isChecked() && selectedCardNumber != null && total > 0;
         payButton.setEnabled(isEnabled);
         payButton.setAlpha(isEnabled ? 1.0f : 0.5f);
     }
+
+    /**
+     * Обновляет отображение общей суммы заказа. Учитывает стоимость товаров и дополнительную
+     * защиту заказа, если она включена.
+     */
     private void updateTotalAmount() {
         int finalTotal = total + (isProtectionEnabled ? protectionCost : 0);
         totalAmount.setText("Итого: " + finalTotal + " ₽");
     }
+
+    /**
+     * Инициирует процесс оплаты. Проверяет авторизацию пользователя, делает снимок текущей
+     * корзины, останавливает слушатель адаптера и отображает диалог подтверждения заказа.
+     */
     private void processPayment() {
         String userId = getCurrentUserId();
         if (userId == null) {
@@ -481,6 +595,11 @@ public class OrderActivity extends Fragment {
         orderAdapter.stopListening();
         showConfirmationDialog(userId, cartItemsSnapshot, finalTotal);
     }
+
+    /**
+     * Отображает диалог подтверждения заказа. Показывает адрес доставки и итоговую сумму,
+     * позволяя пользователю подтвердить или отменить заказ.
+     */
     private void showConfirmationDialog(String userId, List<Cart> cartItems, int finalTotal) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Подтверждение заказа");
@@ -501,6 +620,12 @@ public class OrderActivity extends Fragment {
         builder.setNegativeButton("Отмена", (dialog, which) -> orderAdapter.startListening());
         builder.show();
     }
+
+    /**
+     * Создает заказ в Firebase Firestore. Формирует данные заказа, включая список товаров,
+     * сумму, способ оплаты, адрес доставки и случайный срок доставки, после чего очищает
+     * корзину и перенаправляет пользователя в каталог.
+     */
     private void createOrder(String userId, List<Cart> cartItems, int totalAmount, String cardNumber) {
         Map<String, Object> orderData = new HashMap<>();
         orderData.put("userId", userId);
@@ -530,10 +655,20 @@ public class OrderActivity extends Fragment {
                     orderAdapter.startListening();
                 });
     }
+
+    /**
+     * Интерфейс для обработки результатов обновления количества товаров в процессе оформления заказа.
+     */
     private interface ProductUpdateCallback {
         void onAllProductsUpdated();
         void onUpdateFailed(Exception e);
     }
+
+    /**
+     * Обновляет количество товаров в Firebase Firestore в рамках транзакции. Уменьшает
+     * количество доступных товаров на основе заказанного количества и вызывает callback
+     * по завершении.
+     */
     private void updateProductQuantities(List<Cart> cartItems, ProductUpdateCallback callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         final int[] processedItems = {0};
@@ -581,6 +716,11 @@ public class OrderActivity extends Fragment {
             });
         }
     }
+
+    /**
+     * Очищает корзину пользователя в Firebase Firestore после успешного оформления заказа.
+     * Удаляет все записи корзины, связанные с текущим пользователем.
+     */
     private void clearCart(String userId) {
         FirebaseFirestore.getInstance().collection("cart")
                 .whereEqualTo("userId", userId)
@@ -592,6 +732,11 @@ public class OrderActivity extends Fragment {
                 })
                 .addOnFailureListener(e -> showToast("Ошибка при очистке корзины"));
     }
+
+    /**
+     * Перенаправляет пользователя в фрагмент каталога после успешного оформления заказа.
+     * Передает данные пользователя в новый фрагмент.
+     */
     private void navigateToCatalog() {
         Bundle bundle = new Bundle();
         bundle.putString("USER_DOCUMENT_ID", userDocumentId);
@@ -602,14 +747,26 @@ public class OrderActivity extends Fragment {
                 .replace(R.id.frameLayout, catalogFragment)
                 .commit();
     }
+
+    /**
+     * Возвращает идентификатор текущего пользователя.
+     */
     private String getCurrentUserId() {
         return userDocumentId;
     }
+
+    /**
+     * Отображает всплывающее сообщение с заданным текстом.
+     */
     private void showToast(String message) {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
     }
+
+    /**
+     * Вызывается при запуске фрагмента. Запускает слушатель адаптера для обновления данных корзины.
+     */
     @Override
     public void onStart() {
         super.onStart();
@@ -617,6 +774,11 @@ public class OrderActivity extends Fragment {
             orderAdapter.startListening();
         }
     }
+
+    /**
+     * Вызывается при остановке фрагмента. Останавливает слушатель адаптера для предотвращения
+     * утечек памяти.
+     */
     @Override
     public void onStop() {
         super.onStop();

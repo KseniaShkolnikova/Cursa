@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -38,6 +39,13 @@ import com.yandex.runtime.Error;
 import com.yandex.runtime.image.ImageProvider;
 import com.yandex.runtime.network.NetworkError;
 import com.yandex.runtime.network.RemoteError;
+
+/**
+ * Класс MapSelectionActivity представляет собой активность для выбора адреса доставки
+ * на карте в приложении "OZON". Использует Yandex MapKit для отображения
+ * карты, определения текущего местоположения пользователя и поиска адреса по координатам.
+ * Позволяет пользователю вручную выбрать точку на карте или использовать текущее местоположение.
+ */
 public class MapSelectionActivity extends AppCompatActivity {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
     private static final String YANDEX_MAPKIT_API_KEY = "3847ea55-35fb-4a64-a196-4839fac767be";
@@ -57,6 +65,12 @@ public class MapSelectionActivity extends AppCompatActivity {
     private PlacemarkMapObject selectedLocationMarker;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
+
+    /**
+     * Инициализирует активность выбора адреса на карте. Настраивает Yandex MapKit, проверяет
+     * наличие интернет-соединения, инициализирует элементы UI, карту и сервисы определения
+     * местоположения. Запрашивает разрешения на доступ к местоположению и уведомлениям.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +96,11 @@ public class MapSelectionActivity extends AppCompatActivity {
         initLocationServices();
         checkLocationPermissionAndMoveToCurrentLocation();
     }
+
+    /**
+     * Проверяет наличие интернет-соединения. Использует ConnectivityManager для определения
+     * состояния сети, учитывая различия в API для разных версий Android.
+     */
     private boolean isNetworkAvailable() {
         try {
             ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -96,6 +115,11 @@ public class MapSelectionActivity extends AppCompatActivity {
             return false;
         }
     }
+
+    /**
+     * Инициализирует элементы UI, такие как карта, кнопки подтверждения, сброса и отмены выбора.
+     * Настраивает обработчики событий для кнопок.
+     */
     private void initViews() {
         mapView = findViewById(R.id.mapview);
         btnConfirm = findViewById(R.id.btnConfirmSelection);
@@ -125,10 +149,20 @@ public class MapSelectionActivity extends AppCompatActivity {
             finish();
         });
     }
+
+    /**
+     * Инициализирует сервисы определения местоположения с использованием FusedLocationProviderClient.
+     * Подготавливает объект для получения обновлений местоположения.
+     */
     private void initLocationServices() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         createLocationRequest();
     }
+
+    /**
+     * Создает запрос на обновление местоположения с заданными параметрами (интервал, приоритет).
+     * Настраивает callback для обработки новых данных о местоположении.
+     */
     private void createLocationRequest() {
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setInterval(10000);
@@ -154,6 +188,10 @@ public class MapSelectionActivity extends AppCompatActivity {
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
+    /**
+     * Обновляет отображение текущего местоположения пользователя на карте. Добавляет маркер
+     * текущей позиции и перемещает камеру карты к этой точке, если не выбран ручной режим.
+     */
     private void updateLocationOnMap(Location location) {
         if (mapView != null && location != null) {
             Point currentLocation = new Point(location.getLatitude(), location.getLongitude());
@@ -175,6 +213,11 @@ public class MapSelectionActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**
+     * Настраивает карту Yandex MapKit. Устанавливает начальную позицию камеры, инициализирует
+     * менеджер поиска адресов и добавляет слушатель для обработки касаний карты.
+     */
     private void setupMap() {
         Point startPoint = new Point(55.751574, 37.573856);
         mapView.getMap().move(new CameraPosition(startPoint, 15f, 0f, 0f));
@@ -194,6 +237,11 @@ public class MapSelectionActivity extends AppCompatActivity {
 
         mapView.getMap().addInputListener(mapInputListener);
     }
+
+    /**
+     * Обрабатывает касание карты пользователем. Переключает режим на ручной выбор, добавляет
+     * маркер выбранной точки, перемещает камеру к этой точке и инициирует поиск адреса.
+     */
     private void handleMapTap(Point point) {
         isManualSelection = true;
         btnResetSelection.setVisibility(View.VISIBLE);
@@ -215,6 +263,11 @@ public class MapSelectionActivity extends AppCompatActivity {
         }
         searchAddress(point);
     }
+
+    /**
+     * Сбрасывает выбор адреса к текущему местоположению пользователя. Удаляет маркер ручного
+     * выбора и запрашивает последнее известное местоположение для обновления карты.
+     */
     private void resetToLocationTracking() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -227,6 +280,10 @@ public class MapSelectionActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Выполняет поиск адреса по заданным координатам с использованием Yandex MapKit Search.
+     * Обновляет выбранный адрес и активирует кнопку подтверждения при успешном поиске.
+     */
     private void searchAddress(Point point) {
         searchSession = searchManager.submit(
                 point,
@@ -274,6 +331,11 @@ public class MapSelectionActivity extends AppCompatActivity {
                 }
         );
     }
+
+    /**
+     * Проверяет наличие разрешений на доступ к местоположению. Если разрешения предоставлены,
+     * перемещает карту к текущему местоположению пользователя, иначе запрашивает разрешения.
+     */
     private void checkLocationPermissionAndMoveToCurrentLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -302,6 +364,12 @@ public class MapSelectionActivity extends AppCompatActivity {
             );
         }
     }
+
+    /**
+     * Обрабатывает результат запроса разрешений на доступ к местоположению. Если разрешения
+     * предоставлены, перемещает карту к текущему местоположению, иначе отображает карту с
+     * начальной точкой.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -317,6 +385,11 @@ public class MapSelectionActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**
+     * Возвращает результат выбора адреса (адрес, широту и долготу) в вызывающую активность
+     * и завершает текущую активность.
+     */
     private void returnResult() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("SELECTED_ADDRESS", selectedAddress);
@@ -325,12 +398,21 @@ public class MapSelectionActivity extends AppCompatActivity {
         setResult(RESULT_OK, resultIntent);
         finish();
     }
+
+    /**
+     * Вызывается при запуске активности. Активирует Yandex MapKit и MapView для отображения карты.
+     */
     @Override
     protected void onStart() {
         super.onStart();
         MapKitFactory.getInstance().onStart();
         mapView.onStart();
     }
+
+    /**
+     * Вызывается при остановке активности. Отменяет текущий поиск адреса, останавливает обновления
+     * местоположения, удаляет слушатель карты и деактивирует Yandex MapKit и MapView.
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -346,6 +428,11 @@ public class MapSelectionActivity extends AppCompatActivity {
         mapView.onStop();
         MapKitFactory.getInstance().onStop();
     }
+
+    /**
+     * Вызывается при приостановке активности. Останавливает обновления местоположения, чтобы
+     * избежать лишних запросов в фоновом режиме.
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -353,6 +440,11 @@ public class MapSelectionActivity extends AppCompatActivity {
             fusedLocationClient.removeLocationUpdates(locationCallback);
         }
     }
+
+    /**
+     * Вызывается при возобновлении активности. Если разрешения на местоположение предоставлены,
+     * возобновляет запросы на обновление местоположения.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -361,6 +453,10 @@ public class MapSelectionActivity extends AppCompatActivity {
             createLocationRequest();
         }
     }
+
+    /**
+     * Перехватывает события касания экрана. Используется для стандартной обработки событий касания.
+     */
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         return super.dispatchTouchEvent(ev);

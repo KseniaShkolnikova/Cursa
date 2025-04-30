@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -18,25 +19,51 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+/**
+ * Класс ProductAdapter представляет собой адаптер для отображения списка товаров
+ * в приложении "OZON". Используется в различных режимах: для покупателей,
+ * продавцов и в процессе оформления заказа. Поддерживает добавление товаров в корзину,
+ * редактирование и удаление товаров продавцом.
+ */
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
     private List<Product> products = new ArrayList<>();
     private OnItemClickListener listener;
     private String userDocumentId;
     private String userRole;
     private boolean isForOrder;
+
+    /**
+     * Интерфейс для обработки события клика по товару.
+     */
     public interface OnItemClickListener {
         void onItemClick(Product product);
     }
+
+    /**
+     * Конструктор адаптера для использования в каталоге. Инициализирует адаптер с
+     * обработчиком кликов, идентификатором пользователя и ролью пользователя.
+     */
     public ProductAdapter(OnItemClickListener listener, String userDocumentId, String userRole) {
         this.listener = listener;
         this.userDocumentId = userDocumentId;
         this.userRole = userRole;
         this.isForOrder = false;
     }
+
+    /**
+     * Конструктор адаптера для использования в процессе оформления заказа. Инициализирует
+     * адаптер только с идентификатором пользователя и устанавливает режим отображения для заказа.
+     */
     public ProductAdapter(String userDocumentId) {
         this.userDocumentId = userDocumentId;
         this.isForOrder = true;
     }
+
+    /**
+     * Создает новый ViewHolder для элемента списка товаров. Выбирает макет в зависимости
+     * от режима (для заказа, продавца или покупателя) и настраивает параметры отображения.
+     */
     @NonNull
     @Override
     public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -53,6 +80,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
         return new ProductViewHolder(view, isForOrder);
     }
+
+    /**
+     * Привязывает данные товара к ViewHolder. Устанавливает обработчики событий для кнопок
+     * добавления в корзину, редактирования и удаления, если пользователь — продавец.
+     */
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         Product product = products.get(position);
@@ -85,10 +117,19 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             }
         }
     }
+
+    /**
+     * Возвращает общее количество товаров в списке.
+     */
     @Override
     public int getItemCount() {
         return products.size();
     }
+
+    /**
+     * Обновляет список товаров и сортирует их по популярности, если передана карта популярности.
+     * Уведомляет адаптер об изменении данных для обновления UI.
+     */
     public void updateData(List<Product> newProducts, Map<String, Integer> productPopularityMap) {
         this.products.clear();
         this.products.addAll(newProducts);
@@ -101,6 +142,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
         notifyDataSetChanged();
     }
+
+    /**
+     * Добавляет товар в корзину пользователя в Firebase Firestore. Проверяет наличие товара
+     * на складе и обновляет или создает запись в корзине.
+     */
     private void addToCart(Product product, ProductViewHolder holder) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String productId = product.getId();
@@ -150,6 +196,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                     showToast(holder, "Ошибка при проверке товара", false);
                 });
     }
+
+    /**
+     * Открывает фрагмент редактирования товара для продавца. Передает данные о товаре
+     * и пользователе в новый фрагмент ProductDetailSeller.
+     */
     private void editProduct(Product product, ProductViewHolder holder) {
         ProductDetailSeller fragment = new ProductDetailSeller();
         Bundle args = new Bundle();
@@ -163,6 +214,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                 .addToBackStack(null)
                 .commit();
     }
+
+    /**
+     * Удаляет товар из Firebase Firestore. Удаляет товар из списка и обновляет UI
+     * после успешного удаления.
+     */
     private void deleteProduct(Product product, ProductViewHolder holder) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("products").document(product.getId())
@@ -175,14 +231,28 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                     showToast(holder, "Ошибка при удалении", false);
                 });
     }
+
+    /**
+     * Отображает всплывающее сообщение с заданным текстом.
+     */
     private void showToast(ProductViewHolder holder, String message, boolean isSuccess) {
         Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
     }
+
+    /**
+     * Внутренний класс ProductViewHolder представляет собой ViewHolder для элемента списка товаров.
+     * Содержит ссылки на элементы UI для отображения данных товара и кнопок управления.
+     */
     static class ProductViewHolder extends RecyclerView.ViewHolder {
         TextView productName, productPrice;
         ImageView productImage;
         Button addToCartButton, editButton, deleteButton;
         boolean isForOrderMode;
+
+        /**
+         * Конструктор ViewHolder. Инициализирует элементы UI в зависимости от режима
+         * (для заказа или каталога).
+         */
         public ProductViewHolder(@NonNull View itemView, boolean isForOrder) {
             super(itemView);
             this.isForOrderMode = isForOrder;
@@ -194,6 +264,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                 editButton = itemView.findViewById(R.id.editProductButton);
             }
         }
+
+        /**
+         * Привязывает данные товара к элементам UI. Устанавливает название, цену и изображение
+         * товара, форматируя отображение в зависимости от режима.
+         */
         public void bind(Product product) {
             if (productName != null) {
                 productName.setText(product.getName() != null ? product.getName() : "");

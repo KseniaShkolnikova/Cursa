@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +31,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+/**
+ * Класс ProfileActivity представляет собой фрагмент для отображения профиля пользователя
+ * в приложении "OZON". Позволяет пользователю просматривать свои данные,
+ * заказы, карты, а также редактировать профиль, изменять пароль, регистрироваться как продавец
+ * и удалять аккаунт.
+ */
 public class ProfileActivity extends Fragment {
     private static final String STATUS_CREATED = "создан";
     private static final String STATUS_DELIVERED = "доставлен";
@@ -45,6 +53,11 @@ public class ProfileActivity extends Fragment {
     private ListenerRegistration completedOrdersListener;
     private ListenerRegistration cardsListener;
     private static final Pattern SPECIAL_CHAR_PATTERN = Pattern.compile("[!@#$%^&*(),.?\":{}|<>]");
+
+    /**
+     * Создает и возвращает представление фрагмента. Инициализирует элементы UI,
+     * извлекает данные о пользователе из аргументов и настраивает слушатели для обновления данных.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -59,24 +72,39 @@ public class ProfileActivity extends Fragment {
         setupMenuButton(view);
         setupAddCardButton(view);
         setupRealtimeListeners();
-
         return view;
     }
+
+    /**
+     * Вызывается при запуске фрагмента. Устанавливает слушатели для обновления данных в реальном времени.
+     */
     @Override
     public void onStart() {
         super.onStart();
         setupRealtimeListeners();
     }
+
+    /**
+     * Вызывается при остановке фрагмента. Удаляет слушатели для обновления данных в реальном времени.
+     */
     @Override
     public void onStop() {
         super.onStop();
         removeRealtimeListeners();
     }
+
+    /**
+     * Вызывается при уничтожении фрагмента. Удаляет слушатели для обновления данных в реальном времени.
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
         removeRealtimeListeners();
     }
+
+    /**
+     * Инициализирует элементы UI фрагмента, такие как текстовые поля и контейнеры для заказов и карт.
+     */
     private void initializeViews(View view) {
         tvUserName = view.findViewById(R.id.tvUserName);
         tvUserLogin = view.findViewById(R.id.tvUserLogin);
@@ -84,14 +112,27 @@ public class ProfileActivity extends Fragment {
         inDeliveryOrdersContainer = view.findViewById(R.id.inDeliveryOrdersContainer);
         cardsContainer = view.findViewById(R.id.cardsContainer);
     }
+
+    /**
+     * Настраивает кнопку меню. Устанавливает обработчик для отображения всплывающего меню.
+     */
     private void setupMenuButton(View view) {
         ImageView btnMenu = view.findViewById(R.id.btnMenu);
         btnMenu.setOnClickListener(v -> showPopupMenu(v));
     }
+
+    /**
+     * Настраивает кнопку добавления карты. Устанавливает обработчик для отображения диалога добавления карты.
+     */
     private void setupAddCardButton(View view) {
         Button btnAddCard = view.findViewById(R.id.btnAddCard);
         btnAddCard.setOnClickListener(v -> showAddCardDialog());
     }
+
+    /**
+     * Устанавливает слушатели для обновления данных в реальном времени. Отслеживает изменения
+     * в данных пользователя, заказах и картах в Firebase Firestore.
+     */
     private void setupRealtimeListeners() {
         removeRealtimeListeners();
         if (userDocumentId != null) {
@@ -138,6 +179,10 @@ public class ProfileActivity extends Fragment {
                     });
         }
     }
+
+    /**
+     * Удаляет слушатели для обновления данных в реальном времени, чтобы избежать утечек памяти.
+     */
     private void removeRealtimeListeners() {
         if (userListener != null) {
             userListener.remove();
@@ -156,10 +201,18 @@ public class ProfileActivity extends Fragment {
             cardsListener = null;
         }
     }
+
+    /**
+     * Обновляет UI данными пользователя. Устанавливает имя и логин пользователя в текстовые поля.
+     */
     private void updateUserDataUI(DocumentSnapshot document) {
         tvUserName.setText(document.getString("name"));
         tvUserLogin.setText("Логин: " + document.getString("email"));
     }
+
+    /**
+     * Обновляет UI списком заказов в доставке. Отображает заказы или сообщение об их отсутствии.
+     */
     private void updateInDeliveryOrdersUI(List<DocumentSnapshot> documents) {
         inDeliveryOrdersContainer.removeAllViews();
         if (documents.isEmpty()) {
@@ -170,6 +223,10 @@ public class ProfileActivity extends Fragment {
             }
         }
     }
+
+    /**
+     * Обновляет UI списком выполненных заказов. Отображает заказы или сообщение об их отсутствии.
+     */
     private void updateCompletedOrdersUI(List<DocumentSnapshot> documents) {
         completedOrdersContainer.removeAllViews();
         if (documents.isEmpty()) {
@@ -180,12 +237,21 @@ public class ProfileActivity extends Fragment {
             }
         }
     }
+
+    /**
+     * Обновляет UI списком карт пользователя. Отображает добавленные карты.
+     */
     private void updateCardsUI(List<DocumentSnapshot> documents) {
         cardsContainer.removeAllViews();
         for (DocumentSnapshot document : documents) {
             addCardToView(document);
         }
     }
+
+    /**
+     * Добавляет карточку заказа в указанный контейнер. Отображает статус, детали заказа,
+     * список товаров и, при необходимости, количество дней до доставки.
+     */
     private void addOrderCard(LinearLayout container, DocumentSnapshot document, boolean showDeliveryDays) {
         View orderView = LayoutInflater.from(requireContext()).inflate(R.layout.item_order_profile, container, false);
         TextView tvOrderStatus = orderView.findViewById(R.id.tvOrderStatus);
@@ -242,6 +308,10 @@ public class ProfileActivity extends Fragment {
         rvProducts.setAdapter(productAdapter);
         container.addView(orderView);
     }
+
+    /**
+     * Добавляет сообщение об отсутствии данных в указанный контейнер.
+     */
     private void addEmptyMessage(LinearLayout container, String message) {
         TextView emptyView = new TextView(requireContext());
         emptyView.setText(message);
@@ -249,6 +319,11 @@ public class ProfileActivity extends Fragment {
         emptyView.setPadding(16, 16, 16, 16);
         container.addView(emptyView);
     }
+
+    /**
+     * Отображает всплывающее меню с опциями профиля, такими как выход, регистрация продавца,
+     * редактирование аккаунта, смена пароля и удаление аккаунта.
+     */
     private void showPopupMenu(View view) {
         PopupMenu popupMenu = new PopupMenu(requireContext(), view);
         popupMenu.getMenuInflater().inflate(R.menu.menu_account, popupMenu.getMenu());
@@ -274,6 +349,11 @@ public class ProfileActivity extends Fragment {
         });
         popupMenu.show();
     }
+
+    /**
+     * Выполняет выход пользователя из системы. Очищает данные в SharedPreferences,
+     * отменяет все задачи WorkManager и перенаправляет на экран входа.
+     */
     private void logoutUser() {
         SharedPreferences sharedPrefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         sharedPrefs.edit().clear().apply();
@@ -283,6 +363,11 @@ public class ProfileActivity extends Fragment {
         startActivity(intent);
         requireActivity().finish();
     }
+
+    /**
+     * Проверяет, зарегистрирован ли пользователь как продавец, перед началом регистрации.
+     * Если пользователь уже продавец, отображает сообщение, иначе открывает диалог регистрации.
+     */
     private void checkIfSellerExistsBeforeRegistration() {
         db.collection("users")
                 .whereEqualTo("userId", userDocumentId)
@@ -298,6 +383,11 @@ public class ProfileActivity extends Fragment {
                     }
                 });
     }
+
+    /**
+     * Отображает диалоговое окно для регистрации продавца. Запрашивает данные, такие как
+     * название магазина, ФИО, ОГРНИП и ИНН, и выполняет регистрацию.
+     */
     private void showRegisterSellerDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.seller_registration_dialog, null);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
@@ -324,9 +414,13 @@ public class ProfileActivity extends Fragment {
                 dialog.dismiss();
             }
         });
-
         dialog.show();
     }
+
+    /**
+     * Проверяет корректность введенных данных для регистрации продавца. Убеждается, что
+     * все поля заполнены правильно, включая формат ОГРНИП и ИНН.
+     */
     private boolean validateSellerInput(String storeName, String lastName, String firstName, String middleName, String ogrnip, String inn) {
         if (storeName.isEmpty()) {
             Toast.makeText(requireContext(), "Наименование магазина должно содержать хотя бы 1 символ", Toast.LENGTH_SHORT).show();
@@ -354,6 +448,11 @@ public class ProfileActivity extends Fragment {
         }
         return true;
     }
+
+    /**
+     * Регистрирует пользователя как продавца в Firebase Firestore. Создает новый документ
+     * с данными продавца и перенаправляет на экран продавца.
+     */
     private void registerSeller(String storeName, String lastName, String firstName,
                                 String middleName, String ogrnip, String inn) {
         db.collection("users").document(userDocumentId)
@@ -379,12 +478,17 @@ public class ProfileActivity extends Fragment {
                                         navigateToSellerActivity(documentReference.getId());
                                     })
                                     .addOnFailureListener(e -> {
-                                        Toast.makeText(requireContext(), "Ошибка при регистрации продавца: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(requireContext(), "Ошибка при регистрации продавца", Toast.LENGTH_SHORT).show();
                                     });
                         }
                     }
                 });
     }
+
+    /**
+     * Перенаправляет пользователя на экран продавца после успешной регистрации. Обновляет
+     * SharedPreferences и запускает SellerMainActivity.
+     */
     private void navigateToSellerActivity(String sellerDocumentId) {
         SharedPreferences sharedPrefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
@@ -401,6 +505,11 @@ public class ProfileActivity extends Fragment {
         startActivity(intent);
         requireActivity().finish();
     }
+
+    /**
+     * Отображает диалоговое окно для редактирования данных аккаунта. Позволяет пользователю
+     * изменить свое имя.
+     */
     private void showEditAccountDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.edit_customer_dialog, null);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
@@ -420,6 +529,11 @@ public class ProfileActivity extends Fragment {
         });
         dialog.show();
     }
+
+    /**
+     * Проверяет корректность введенного имени для редактирования аккаунта. Убеждается, что
+     * имя не пустое.
+     */
     private boolean validateAccountInput(String name) {
         if (name.isEmpty()) {
             Toast.makeText(requireContext(), "Имя не может быть пустым", Toast.LENGTH_SHORT).show();
@@ -427,6 +541,10 @@ public class ProfileActivity extends Fragment {
         }
         return true;
     }
+
+    /**
+     * Обновляет данные пользователя в Firebase Firestore. Сохраняет новое имя пользователя.
+     */
     private void updateUserData(String newName) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", newName);
@@ -436,6 +554,10 @@ public class ProfileActivity extends Fragment {
                     Toast.makeText(requireContext(), "Данные успешно обновлены", Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Отображает диалоговое окно для подтверждения старого пароля перед его изменением.
+     */
     private void showConfirmPasswordDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.confirm_password_dialog, null);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
@@ -461,6 +583,11 @@ public class ProfileActivity extends Fragment {
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
+
+    /**
+     * Проверяет правильность введенного старого пароля. Если пароль верный, открывает диалог
+     * для смены пароля, иначе отображает кнопку восстановления пароля.
+     */
     private void verifyOldPassword(String oldPassword, AlertDialog dialog, Button btnForgotPassword) {
         db.collection("users").document(userDocumentId)
                 .get()
@@ -479,6 +606,11 @@ public class ProfileActivity extends Fragment {
                     }
                 });
     }
+
+    /**
+     * Отображает диалоговое окно для восстановления пароля. Отправляет код на email пользователя
+     * и позволяет ввести код для смены пароля.
+     */
     private void showForgotPasswordDialog(String email) {
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.password_recovery, null);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
@@ -509,6 +641,11 @@ public class ProfileActivity extends Fragment {
         });
         dialog.show();
     }
+
+    /**
+     * Отправляет email с кодом для восстановления пароля. Формирует HTML-сообщение с кодом
+     * и отправляет его через SendEmailTask.
+     */
     private void sendPasswordRecoveryEmail(String email, String code) {
         String subject = "Восстановление пароля Ozon";
         String body = "<!DOCTYPE html>" +
@@ -547,6 +684,11 @@ public class ProfileActivity extends Fragment {
                 "</html>";
         new SendEmailTask(requireContext(), email, subject, body, true).execute();
     }
+
+    /**
+     * Отображает диалоговое окно для смены пароля. Позволяет пользователю ввести новый пароль
+     * и подтвердить его.
+     */
     private void showChangePasswordDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.change_password_layout, null);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
@@ -565,6 +707,11 @@ public class ProfileActivity extends Fragment {
         });
         dialog.show();
     }
+
+    /**
+     * Проверяет корректность нового пароля. Убеждается, что пароль соответствует требованиям
+     * по длине, наличию заглавных и строчных букв, цифр и специальных символов.
+     */
     private boolean validateNewPassword(String newPassword, String confirmPassword) {
         if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
@@ -597,6 +744,9 @@ public class ProfileActivity extends Fragment {
         return true;
     }
 
+    /**
+     * Обновляет пароль пользователя в Firebase Firestore. Сохраняет новый пароль.
+     */
     private void updatePassword(String newPassword) {
         db.collection("users").document(userDocumentId)
                 .update("password", newPassword)
@@ -604,6 +754,11 @@ public class ProfileActivity extends Fragment {
                     Toast.makeText(requireContext(), "Пароль успешно изменен", Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Удаляет аккаунт пользователя. Запрашивает подтверждение и удаляет все связанные данные
+     * перед удалением аккаунта.
+     */
     private void deleteAccount() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Удаление аккаунта")
@@ -624,6 +779,10 @@ public class ProfileActivity extends Fragment {
                 .setNegativeButton("Отмена", null)
                 .show();
     }
+
+    /**
+     * Удаляет все данные, связанные с пользователем, такие как карты и заказы, перед удалением аккаунта.
+     */
     private void deleteUserRelatedData(Runnable onComplete) {
         db.collection("cards")
                 .whereEqualTo("userId", userDocumentId)
@@ -649,6 +808,11 @@ public class ProfileActivity extends Fragment {
                     onComplete.run();
                 });
     }
+
+    /**
+     * Отображает диалоговое окно для добавления новой карты. Позволяет пользователю ввести
+     * данные карты и сохранить их.
+     */
     private void showAddCardDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.add_card_dialog, null);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
@@ -731,6 +895,11 @@ public class ProfileActivity extends Fragment {
         });
         dialog.show();
     }
+
+    /**
+     * Проверяет корректность введенных данных карты. Убеждается, что номер карты, CVV и срок
+     * действия соответствуют требованиям.
+     */
     private boolean validateCardInput(String cardNumber, String cardCVV, String cardExpiry) {
         if (cardNumber.isEmpty() || cardCVV.isEmpty() || cardExpiry.isEmpty()) {
             Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
@@ -767,6 +936,10 @@ public class ProfileActivity extends Fragment {
         }
         return true;
     }
+
+    /**
+     * Сохраняет данные карты в Firebase Firestore. Добавляет новую карту в коллекцию "cards".
+     */
     private void saveCardToFirestore(String cardNumber, String cardCVV, String cardExpiry) {
         Map<String, Object> cardData = new HashMap<>();
         cardData.put("cardNumber", cardNumber);
@@ -775,22 +948,28 @@ public class ProfileActivity extends Fragment {
         cardData.put("userId", userDocumentId);
         db.collection("cards")
                 .add(cardData)
-
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Ошибка при добавлении карты: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Добавляет карточку карты в UI. Отображает последние 4 цифры номера карты и позволяет
+     * открыть меню для удаления карты.
+     */
     private void addCardToView(DocumentSnapshot document) {
         String cardNumber = document.getString("cardNumber");
         String cardId = document.getId();
-
         View cardView = LayoutInflater.from(requireContext()).inflate(R.layout.item_card, null);
         TextView tvCardNumber = cardView.findViewById(R.id.tvCardNumber);
         tvCardNumber.setText("Карта **** " + cardNumber.substring(cardNumber.length() - 4));
-
         cardView.setOnClickListener(v -> showCardOptionsMenu(v, cardId));
         cardsContainer.addView(cardView);
     }
+
+    /**
+     * Отображает всплывающее меню для карты с опцией удаления.
+     */
     private void showCardOptionsMenu(View view, String cardId) {
         PopupMenu popupMenu = new PopupMenu(requireContext(), view);
         popupMenu.getMenuInflater().inflate(R.menu.card_delete_menu, popupMenu.getMenu());
@@ -803,6 +982,10 @@ public class ProfileActivity extends Fragment {
         });
         popupMenu.show();
     }
+
+    /**
+     * Удаляет карту из Firebase Firestore. Удаляет документ карты по указанному идентификатору.
+     */
     private void deleteCard(String cardId) {
         db.collection("cards").document(cardId)
                 .delete()

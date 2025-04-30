@@ -1,4 +1,5 @@
 package com.example.ozon;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -32,6 +33,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+/**
+ * Класс CatalogActivity представляет собой фрагмент для отображения каталога товаров
+ * в приложении "OZON". Предоставляет функционал поиска, фильтрации
+ * товаров по категории, цене и популярности, а также переход к детальной информации
+ * о товаре. Использует Firebase Firestore для загрузки данных о товарах.
+ */
 public class CatalogActivity extends Fragment {
     private static final String TAG = "CatalogActivity";
     private RecyclerView recyclerView;
@@ -47,6 +55,13 @@ public class CatalogActivity extends Fragment {
     private String userDocumentId;
     private String userRole;
     private TextView emptyView;
+
+    /**
+     * Создает и возвращает представление фрагмента каталога. Инициализирует элементы UI,
+     * такие как RecyclerView для списка товаров, поле поиска и кнопки фильтрации.
+     * Извлекает данные пользователя из аргументов фрагмента, настраивает адаптер для
+     * отображения товаров и загружает максимальную цену из базы данных для настройки фильтров.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.catalog_layout, container, false);
@@ -74,6 +89,12 @@ public class CatalogActivity extends Fragment {
         setupFilters();
         return view;
     }
+
+    /**
+     * Настраивает функционал поиска товаров. Устанавливает слушатели для поля поиска,
+     * кнопки поиска и действия клавиатуры, чтобы инициировать поиск при вводе текста
+     * или нажатии на кнопку.
+     */
     private void setupSearch() {
         searchBar.addTextChangedListener(new TextWatcher() {
             @Override
@@ -98,16 +119,35 @@ public class CatalogActivity extends Fragment {
             return false;
         });
     }
+
+    /**
+     * Скрывает экранную клавиатуру после выполнения поиска.
+     */
     private void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(searchBar.getWindowToken(), 0);
     }
+
+    /**
+     * Настраивает функционал фильтрации товаров. Устанавливает обработчик события
+     * для кнопки фильтров, который открывает диалоговое окно с параметрами фильтрации.
+     */
     private void setupFilters() {
         filterButton.setOnClickListener(v -> showFiltersDialog());
     }
+
+    /**
+     * Выполняет поиск товаров на основе введенного запроса с учетом текущих фильтров
+     * (категория, максимальная цена, сортировка по популярности).
+     */
     private void performSearch(String query) {
         setupRecyclerView(query, selectedCategory, currentPrice, filterByPopularity);
     }
+
+    /**
+     * Загружает максимальную цену товара из базы данных Firebase Firestore для настройки
+     * диапазона цен в фильтрах. После загрузки выполняет переданный callback.
+     */
     private void loadMaxPriceFromDB(Runnable onComplete) {
         db.collection("products").orderBy("price", Query.Direction.DESCENDING).limit(1)
                 .get()
@@ -122,6 +162,12 @@ public class CatalogActivity extends Fragment {
                     onComplete.run();
                 });
     }
+
+    /**
+     * Отображает диалоговое окно для настройки фильтров. Позволяет выбрать категорию,
+     * максимальную цену и сортировку по популярности. Применяет или сбрасывает фильтры
+     * по нажатию соответствующих кнопок.
+     */
     private void showFiltersDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.filters_dialog, null);
@@ -165,6 +211,12 @@ public class CatalogActivity extends Fragment {
         });
         dialog.show();
     }
+
+    /**
+     * Загружает список категорий товаров из Firebase Firestore и заполняет выпадающий список
+     * (Spinner) в диалоговом окне фильтров. Устанавливает выбранную категорию, если она была
+     * задана ранее.
+     */
     private void loadCategories(Spinner categorySpinner, String selectedCategory) {
         List<String> categories = new ArrayList<>();
         categories.add("Все категории");
@@ -194,8 +246,15 @@ public class CatalogActivity extends Fragment {
                     }
                 });
     }
+
+    /**
+     * Настраивает RecyclerView для отображения списка товаров с учетом заданных фильтров.
+     * Формирует запрос к Firebase Firestore с учетом поискового запроса, категории, максимальной
+     * цены и сортировки по популярности. Обновляет данные в адаптере и управляет видимостью
+     * списка и сообщения о пустом результате.
+     */
     private void setupRecyclerView(String searchText, String selectedCategory,
-                                    int maxPrice,
+                                   int maxPrice,
                                    boolean filterByPopularity) {
         Query query = db.collection("products");
         if (maxPrice > 0) {
@@ -238,6 +297,12 @@ public class CatalogActivity extends Fragment {
             }
         });
     }
+
+    /**
+     * Загружает данные о популярности товаров из коллекции заказов в Firebase Firestore.
+     * Подсчитывает количество заказанных единиц каждого товара и передает результат
+     * в виде карты через callback.
+     */
     private void fetchPopularityData(OnPopularityDataFetchedListener listener) {
         db.collection("orders")
                 .get()
@@ -256,6 +321,11 @@ public class CatalogActivity extends Fragment {
                     listener.onPopularityDataFetched(productPopularityMap);
                 });
     }
+
+    /**
+     * Открывает фрагмент с детальной информацией о выбранном товаре. Передает идентификатор
+     * товара и пользователя в новый фрагмент ProductDetail через Bundle.
+     */
     private void openProductDetail(String productId, String userDocumentId) {
         ProductDetail productDetailFragment = new ProductDetail();
         Bundle bundle = new Bundle();
@@ -268,6 +338,12 @@ public class CatalogActivity extends Fragment {
         transaction.addToBackStack(null);
         transaction.commit();
     }
+
+    /**
+     * Интерфейс OnPopularityDataFetchedListener используется для передачи данных о популярности
+     * товаров после их загрузки из Firebase Firestore. Определяет метод обратного вызова для
+     * обработки полученной карты популярности.
+     */
     interface OnPopularityDataFetchedListener {
         void onPopularityDataFetched(Map<String, Integer> productPopularityMap);
     }
